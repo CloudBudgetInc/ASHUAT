@@ -18,9 +18,10 @@ let _this;
 const setContext = (context) => _this = context;
 let separatedReportingBalances = {};// reporting balances separated by Dimension 2, key is Dim2 Name
 const FIRST_SHEET_NAME = 'Main';
-let FILE_NAME = "ASH Budget Exhibit";
+let FILE_NAME = "Budget Exhibit";
 
 const manageDataAndGenerateFile = () => {
+	HEADER_PARAMS = undefined;
 	createDataSetsSeparatedByDimension1();
 	convertReportingBalancesToReportLines();
 	generateExcelFile();
@@ -254,7 +255,7 @@ const generateExcelFile = async () => {
 	try {
 
 		_this.showSpinner = true;
-		let fileName = `${FILE_NAME} ${_this.selectedBY}`;
+		let fileName = `${FILE_NAME} (${_this.selectedCompany} ${_this.selectedBY})`;
 		fileName = await _prompt("Type the file name", fileName, 'File Name');
 		if (!fileName || fileName.length < 1) {
 			_this.showSpinner = false;

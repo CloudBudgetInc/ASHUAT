@@ -9,14 +9,14 @@ import {
 	TOTAL_NET_LINE_FILL
 } from "./cbReportingExcelStyles"
 import {_getCopy, _message, _prompt, _setCell} from 'c/cbUtils';
-import {subtractReportLines, sumReportLines, calculateDifference} from "./cbReportingExcelUtils";
+import {calculateDifference, subtractReportLines, sumReportLines} from "./cbReportingExcelUtils";
 
 
 let _this;
 const setTreasuryContext = (context) => _this = context;
 let separatedReportingBalances = {};// reporting balances separated by Dimension 2, key is Dim2 Name
 const FIRST_SHEET_NAME = 'Summary';
-let FILE_NAME = "Treasury Report ";
+let FILE_NAME = "Exec. Committee Report";
 
 const SHEET_MAPPING = {
 	'Annual Meeting (353)': 'Annual Meeting',
@@ -50,9 +50,13 @@ const SHEET_TYPE = {
 };
 
 const manageDataAndGenerateTreasuryFile = () => {
-	createDataSetsSeparatedBySheets();
-	convertReportingBalancesToReportLines();
-	generateExcelFile();
+	try {
+		createDataSetsSeparatedBySheets();
+		convertReportingBalancesToReportLines();
+		generateExcelFile();
+	} catch (e) {
+		_message('error', 'Manage Data of Treasury Report Error ' + e);
+	}
 	//console.log('separatedReportingBalances = ' + JSON.stringify(separatedReportingBalances));
 };
 
@@ -101,17 +105,25 @@ const createDataSetsSeparatedBySheets = () => {
 
 const convertReportingBalancesToReportLines = () => {
 	Object.keys(separatedReportingBalances).forEach(sheetName => {
-		let reportingBalances = separatedReportingBalances[sheetName];
-		let sheetType = SHEET_TYPE[sheetName];
-		let reportLines = getReportLinesFromReportingBalances(reportingBalances, sheetType);
-		if (sheetType === 'summary') {
-			reportLines = addSummarySubTotalLines(reportLines);
-		} else if (sheetType === 'pairs') {
-			reportLines = addPairSubTotalLines(reportLines);
-		} else {
-			reportLines = addSimpleSubTotalLines(reportLines);
+		try {
+			let reportingBalances = separatedReportingBalances[sheetName];
+			let sheetType = SHEET_TYPE[sheetName];
+			let reportLines = getReportLinesFromReportingBalances(reportingBalances, sheetType);
+			if (sheetType === 'summary') {
+				try {
+					reportLines = addSummarySubTotalLines(reportLines);
+				} catch (e) {
+					_message('error', 'Add Summary Sub Total Lines Error : ' + e);
+				}
+			} else if (sheetType === 'pairs') {
+				reportLines = addPairSubTotalLines(reportLines);
+			} else {
+				reportLines = addSimpleSubTotalLines(reportLines);
+			}
+			separatedReportingBalances[sheetName] = reportLines;
+		} catch (e) {
+			_message('error', 'Convert RB to RL Iteration Error ' + e);
 		}
-		separatedReportingBalances[sheetName] = reportLines;
 	});
 };
 
@@ -210,7 +222,7 @@ const addSummarySubTotalLines = (reportLines) => {
 					rlCopy.label = 'Awards TOTAL';
 					reportLinesGroup[key2] = rlCopy;
 				} else {
-					sumReportLines(groupRL, rlCopy);
+					sumReportLines(groupRL, rlCopy, null, 'Summary Subtotal Grouping');
 				}
 			}
 
@@ -218,19 +230,18 @@ const addSummarySubTotalLines = (reportLines) => {
 			if (!groupRL) {
 				reportLinesGroup[key1] = rl;
 			} else {
-				sumReportLines(groupRL, rl);
+				sumReportLines(groupRL, rl, null, 'Summary Regular Line Grouping');
 			}
 		} catch (e) {
 			_message('error', 'Add Summary Sub Total Lines Error : ' + e);
 		}
 	});
-	//console.log('reportLinesGroup = ' + JSON.stringify(reportLinesGroup));
 	reportLines = Object.values(reportLinesGroup);
 	const incomeLines = reportLines.filter(rl => rl.lineType === 'Income');
 	const expenseLines = reportLines.filter(rl => rl.lineType !== 'Income' && !rl.dim2Name.includes('Focus Fellowship Training Program'));
 	const FFTPLines = reportLines.filter(rl => rl.dim2Name.includes('Focus Fellowship Training Program'));
 	const FFTPL = FFTPLines.length > 0 ? FFTPLines[0] : undefined;
-	FFTPL.lineType = 'Reserve Expenses';
+	if (FFTPL) FFTPL.lineType = 'Reserve Expenses';
 	const totalIncomeRL = {
 		actual: 0,
 		approvedBudget: 0,
@@ -241,7 +252,7 @@ const addSummarySubTotalLines = (reportLines) => {
 		type: 'lightGreyBoldFont'
 	};
 	incomeLines.forEach(rl => {
-		if (!rl.isSubline) sumReportLines(totalIncomeRL, rl);
+		if (!rl.isSubline) sumReportLines(totalIncomeRL, rl, null, 'Treasury Summary Income');
 	});
 
 	const totalExpenseRL = {
@@ -254,7 +265,7 @@ const addSummarySubTotalLines = (reportLines) => {
 		type: 'lightGreyBoldFont'
 	};
 	expenseLines.forEach(rl => {
-		if (!rl.isSubline) sumReportLines(totalExpenseRL, rl);
+		if (!rl.isSubline) sumReportLines(totalExpenseRL, rl, null, 'Treasury Summary Expenses');
 	});
 	const totalNetIncomeBeforeFFTP = _getCopy(totalIncomeRL);
 	totalNetIncomeBeforeFFTP.label = 'Total Net Income from Operations';
@@ -262,7 +273,7 @@ const addSummarySubTotalLines = (reportLines) => {
 
 	const totalExpenseAfterFFTP = _getCopy(totalExpenseRL);
 	totalExpenseAfterFFTP.label = 'Total Expense from Operations and Reserves';
-	sumReportLines(totalExpenseAfterFFTP, FFTPL);
+	if (FFTPL) sumReportLines(totalExpenseAfterFFTP, FFTPL, null, 'Treasury Summary FFTP');
 
 	const totalNetIncomeAfterFFTP = _getCopy(totalIncomeRL);
 	totalNetIncomeAfterFFTP.label = 'Total Net Income from Operations and Reserves';
@@ -272,13 +283,14 @@ const addSummarySubTotalLines = (reportLines) => {
 	expenseLines.forEach((rl, i) => rl.lineType = i ? null : rl.lineType);
 
 	// null is empty row
-	reportLines = [...incomeLines, totalIncomeRL, null, ...expenseLines, totalExpenseRL, null, totalIncomeRL, totalExpenseRL, totalNetIncomeBeforeFFTP, null,
-		FFTPL, null, totalIncomeRL, totalExpenseAfterFFTP, totalNetIncomeAfterFFTP];
+	if (FFTPL) {
+		reportLines = [...incomeLines, totalIncomeRL, null, ...expenseLines, totalExpenseRL, null, totalIncomeRL, totalExpenseRL, totalNetIncomeBeforeFFTP, null,
+			FFTPL, null, totalIncomeRL, totalExpenseAfterFFTP, totalNetIncomeAfterFFTP];
+	} else {
+		reportLines = [...incomeLines, totalIncomeRL, null, ...expenseLines, totalExpenseRL, null, totalIncomeRL, totalExpenseRL, totalNetIncomeBeforeFFTP];
+	}
 	reportLines = calculateDifference(reportLines);
 
-	//console.log('incomeLines = ' + JSON.stringify(incomeLines));
-	//console.log('reportLines = ' + JSON.stringify(reportLines));
-	//console.log('FFTPLines = ' + JSON.stringify(FFTPLines));
 	return reportLines;
 };
 
@@ -297,12 +309,12 @@ const addSimpleSubTotalLines = (reportLines) => {
 		try {
 			if (rl.lineType !== 'Income') rl.lineType = 'Expense';
 			let key1 = rl.lineType + rl.accName; // key of simple line
-			rl.label = rl.accName;
+			rl.label = rl.accName.replace(/^\d+\s*-\s*/, ''); // delete account number and a dash
 			const groupRL = reportLinesGroup[key1];
 			if (!groupRL) {
 				reportLinesGroup[key1] = rl;
 			} else {
-				sumReportLines(groupRL, rl);
+				sumReportLines(groupRL, rl, null, 'Treasury Simple Grouping');
 			}
 		} catch (e) {
 			_message('error', 'Add Simple Sub Total Lines Error : ' + e);
@@ -321,7 +333,7 @@ const addSimpleSubTotalLines = (reportLines) => {
 		label: 'Total Income',
 		type: 'lightGreyBoldFont'
 	};
-	incomeLines.forEach(rl => sumReportLines(totalIncomeRL, rl));
+	incomeLines.forEach(rl => sumReportLines(totalIncomeRL, rl, null, 'Treasury Simple Income'));
 
 	const totalExpenseRL = {
 		actual: 0,
@@ -332,7 +344,7 @@ const addSimpleSubTotalLines = (reportLines) => {
 		label: 'Total Expense',
 		type: 'lightGreyBoldFont'
 	};
-	expenseLines.forEach(rl => sumReportLines(totalExpenseRL, rl));
+	expenseLines.forEach(rl => sumReportLines(totalExpenseRL, rl, null, 'Treasury Simple Expense'));
 	const totalNetIncome = _getCopy(totalIncomeRL);
 	totalNetIncome.label = 'Total Net Income from Operations';
 	subtractReportLines(totalNetIncome, totalExpenseRL, 'Simple 1');
@@ -377,7 +389,7 @@ const addPairSubTotalLines = (reportLines) => {
 			if (!groupRL) {
 				reportLinesGroup[key1] = rl;
 			} else {
-				sumReportLines(groupRL, rl);
+				sumReportLines(groupRL, rl, null, 'Treasury Pairs Grouping');
 			}
 		} catch (e) {
 			_message('error', 'Add Simple Sub Total Lines Error : ' + e);
@@ -396,7 +408,7 @@ const addPairSubTotalLines = (reportLines) => {
 		label: 'Total Income',
 		type: 'lightGrey'
 	};
-	incomeLines.forEach(rl => sumReportLines(totalIncomeRL, rl));
+	incomeLines.forEach(rl => sumReportLines(totalIncomeRL, rl, null, 'Treasury Pairs Income'));
 
 	const totalExpenseRL = {
 		actual: 0,
@@ -407,7 +419,7 @@ const addPairSubTotalLines = (reportLines) => {
 		label: 'Total Expense',
 		type: 'lightGrey'
 	};
-	expenseLines.forEach(rl => sumReportLines(totalExpenseRL, rl));
+	expenseLines.forEach(rl => sumReportLines(totalExpenseRL, rl, null, 'Treasury Simple Expense'));
 	const totalNetIncome = _getCopy(totalIncomeRL);
 	totalNetIncome.type = 'lightGreyBoldFont';
 	totalNetIncome.label = 'Total Net Income from Operations';
@@ -436,7 +448,7 @@ const addPairSubTotalLines = (reportLines) => {
 		};
 
 		if (pair.length === 2) {
-			sumReportLines(subTotal, pair[0]);
+			sumReportLines(subTotal, pair[0], null, 'Pair Subtotal 2');
 			subtractReportLines(subTotal, pair[1], 'Pair st 2');
 			simpleLines = [...simpleLines, pair[0], pair[1], subTotal, null];
 		} else {
@@ -462,7 +474,7 @@ const addPairSubTotalLines = (reportLines) => {
 const generateExcelFile = async () => {
 	try {
 		_this.showSpinner = true;
-		let fileName = `${FILE_NAME} ${_this.selectedBY}`;
+		let fileName = `${FILE_NAME} (${_this.selectedCompany} ${_this.selectedBY})`;
 		fileName = await _prompt("Type the file name", fileName, 'File Name');
 		if (!fileName || fileName.length < 1) {
 			_this.showSpinner = false;

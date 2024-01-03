@@ -17,10 +17,14 @@ export default class cbReportingExcel extends LightningElement {
 	@track showSpinner = false;// true if the spinner needed
 	@track budgetYearSO = [];// list of available budget year
 	@track companySO = [];// list of available budget year
-	@track templateSO = [{label: 'Budget Exhibit', value: 'Budget Exhibit'}, {
-		label: 'Treasury Report',
-		value: 'Treasury Report'
-	}];// list of available templates
+	@track templateSO = [
+		{
+			label: 'Budget Exhibit',
+			value: 'Budget Exhibit'
+		}, {
+			label: 'Exec. Committee Report',
+			value: 'Treasury Report'
+		}];// list of available templates
 	@track selectedBY;// selected Budget year
 	@track selectedCompany;// selected Company
 	@track selectedTemplate = 'Budget Exhibit';// selected Template
@@ -42,12 +46,12 @@ export default class cbReportingExcel extends LightningElement {
 
 	///////////////NEW LIB SECTION BELOW///////////////
 
-	connectedCallback() { // component initialization
-		this.getNeededAnalytics();
+	async connectedCallback() { // component initialization
+		await this.getNeededAnalytics();
 	}
 
-	getNeededAnalytics = () => {
-		getNeededAnalyticsServer()
+	getNeededAnalytics = async () => {
+		await getNeededAnalyticsServer()
 			.then(analyticMap => {
 				try {
 					const budgetYears = analyticMap.budgetYearSO;
@@ -56,6 +60,8 @@ export default class cbReportingExcel extends LightningElement {
 						return r;
 					}, []);
 					this.selectedBY = budgetYears[0];
+					const storedBY = localStorage.getItem('selectedBY');
+					if (storedBY && budgetYears.includes(storedBY)) this.selectedBY = storedBY;
 
 					const companies = analyticMap.companySO;
 					this.companySO = companies.reduce((r, cmp) => {
@@ -63,6 +69,12 @@ export default class cbReportingExcel extends LightningElement {
 						return r;
 					}, []);
 					this.selectedCompany = companies[0];
+
+					const storedCompany = localStorage.getItem('selectedCompany');
+					if (storedCompany && this.companySO.find(so => so.value === storedCompany)) this.selectedCompany = storedCompany;
+
+					const storedTemplate = localStorage.getItem('selectedTemplate');
+					if (storedTemplate && this.templateSO.find(so => so.value === storedTemplate)) this.selectedTemplate = storedTemplate;
 
 				} catch (e) {
 					_message('error', 'Apply Budget Years Error : ', e);
@@ -83,6 +95,7 @@ export default class cbReportingExcel extends LightningElement {
 
 	handleChangeFilter = (event) => {
 		this[event.target.name] = event.target.value;
+		localStorage.setItem(event.target.name, event.target.value);
 	};
 
 	downloadData = async () => {

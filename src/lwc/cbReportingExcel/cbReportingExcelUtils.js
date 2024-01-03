@@ -1,6 +1,6 @@
 import {_message} from 'c/cbUtils';
 
-const sumReportLines = (baseRL, currentRL, takeIntoAccountIncomeIsNegative) => {
+const sumReportLines = (baseRL, currentRL, takeIntoAccountIncomeIsNegative, log) => {
 	try {
 		if (!baseRL) throw Error('Base line is null');
 		if (!currentRL) throw Error('Current line is null');
@@ -16,6 +16,9 @@ const sumReportLines = (baseRL, currentRL, takeIntoAccountIncomeIsNegative) => {
 		normalizeRL(baseRL);
 	} catch (e) {
 		_message('error', 'Sum Report Lines Error : baseLine: ' + JSON.stringify(baseRL) + ' : currentLine: ' + JSON.stringify(currentRL) + ' => ' + e);
+		console.error('SUM: base = ' + JSON.stringify(baseRL));
+		console.error('SUM: currentRL = ' + JSON.stringify(currentRL));
+		console.error('SUM: log = ' + log);
 	}
 };
 
