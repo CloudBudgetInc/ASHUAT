@@ -77,7 +77,7 @@ const getReportLinesFromReportingBalances = (RBList) => {
 	const reportLinesMap = {}; // key is dim2 Id and account Id
 	RBList.forEach(rb => {
 		try {
-			const lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c + rb.c2g__GeneralLedgerAccount__c;
+			const lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c + rb.c2g__GeneralLedgerAccount__c + rb.Account_Subaccount__c;
 			let reportLine = reportLinesMap[lineKey];
 			if (!reportLine) {
 				reportLine = getNewReportLine(rb, lineKey);

@@ -145,18 +145,18 @@ const getReportLinesFromReportingBalances = (RBList, sheetType) => {
 				reportLine = getNewReportLine(rb, lineKey);
 				reportLinesMap[lineKey] = reportLine;
 			}
-			if (rb.c2g__DualValue__c && rb.c2g__DualValue__c !== 0) {
+			if (rb.c2g__HomeValue__c && rb.c2g__HomeValue__c !== 0) {
 				if (rb.c2g__Type__c === 'Actual') {
-					let invertedIncomeActual = rb.c2g__DualValue__c;
+					let invertedIncomeActual = rb.c2g__HomeValue__c;
 					if (rb.Income_Statement_Group__c === 'Income') {
 						invertedIncomeActual *= -1;
 					}
 					reportLine.actual += parseFloat(invertedIncomeActual);
 				} else {
 					if (rb.Year__c === _this.selectedBY) {
-						reportLine.approvedBudget += parseFloat(rb.c2g__DualValue__c);
+						reportLine.approvedBudget += parseFloat(rb.c2g__HomeValue__c);
 					} else {
-						reportLine.processedBudget += parseFloat(rb.c2g__DualValue__c);
+						reportLine.processedBudget += parseFloat(rb.c2g__HomeValue__c);
 					}
 				}
 			}

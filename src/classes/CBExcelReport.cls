@@ -33,7 +33,7 @@ public with sharing class CBExcelReport {
 		Integer nextYear = selectedBY + 1;
 
 		String sel = 'SELECT c2g__Type__c,Year__c,c2g__Dimension1__r.Name,c2g__Dimension2__r.Name,c2g__Dimension3__r.Name,' +
-				'Income_Statement_Group__c,c2g__GeneralLedgerAccount__r.Name,Account_Subaccount__c,c2g__DualValue__c ';
+				'Income_Statement_Group__c,c2g__GeneralLedgerAccount__r.Name,Account_Subaccount__c,c2g__DualValue__c,c2g__HomeValue__c ';
 		String frWhere = 'FROM c2g__ReportingBalance__c WHERE ';
 		String isg = ' Income_Statement_Group__c IN (\'Income\', \'Program Expense\', \'Salary and Overhead\') ';
 		String tb2 = ' AND c2g__GeneralLedgerAccount__r.c2g__TrialBalance2__c IN (\'Expense\', \'Unrestricted Operating Revenue\') ';
