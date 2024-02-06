@@ -38,7 +38,7 @@ public with sharing class CBExcelReport {
 		String isg = ' Income_Statement_Group__c IN (\'Income\', \'Program Expense\', \'Salary and Overhead\') ';
 		String tb2 = ' AND c2g__GeneralLedgerAccount__r.c2g__TrialBalance2__c IN (\'Expense\', \'Unrestricted Operating Revenue\') ';
 		String companyFilter = ' AND c2g__OwnerCompany__r.Name = \'' + selectedCompany + '\' ';
-		String amountFilter = ' AND c2g__DualValue__c != 0 ';
+		String amountFilter = ' AND c2g__HomeValue__c != 0 ';
 		String actualPlanFilter = ' AND ( (c2g__Type__c = \'Actual\' AND c2g__YearNumber__c = ' + previousYear + ' ) OR ' +
 				' (c2g__Type__c = \'Budget\' AND (c2g__YearNumber__c = ' + selectedBY + ' OR c2g__YearNumber__c = ' + nextYear + ' )) ) ';
 

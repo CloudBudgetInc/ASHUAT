@@ -10,7 +10,7 @@ import {manageDataAndGenerateFile, setContext} from "./cbReportingExcelExhibit"
 import {manageDataAndGenerateTreasuryFile, setTreasuryContext} from "./cbReportingExcelTreasury"
 
 /**
- * DOCUMENTATION FOR THIS SHIT: https://www.npmjs.com/package/write-excel-file
+ * DOCUMENTATION FOR THIS STUFF: https://www.npmjs.com/package/write-excel-file
  */
 export default class cbReportingExcel extends LightningElement {
 	@track reportingBalancesRaw = [];// list of all reporting balances
@@ -140,7 +140,7 @@ export default class cbReportingExcel extends LightningElement {
 			this.reportingBalancesRaw.forEach(rb => {
 				const type = 'Revenue ' + rb.c2g__Type__c + ' (' + rb.Year__c + ')';
 				const subtotal = rb.c2g__Type__c + ' (' + rb.Year__c + ') ' + rb.Income_Statement_Group__c;
-				const value = rb.c2g__Type__c !== 'Actual' && rb.Income_Statement_Group__c === 'Income' ? +rb.c2g__DualValue__c * -1 : +rb.c2g__DualValue__c;
+				const value = rb.c2g__Type__c !== 'Actual' && rb.Income_Statement_Group__c === 'Income' ? +rb.c2g__HomeValue__c * -1 : +rb.c2g__HomeValue__c;
 
 				let typeLog = logsObject[type];
 				if (!typeLog) {
