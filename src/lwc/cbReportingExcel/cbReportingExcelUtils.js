@@ -6,11 +6,15 @@ const sumReportLines = (baseRL, currentRL, takeIntoAccountIncomeIsNegative, log)
 		if (!currentRL) throw Error('Current line is null');
 		if (takeIntoAccountIncomeIsNegative && currentRL.incomeStatementGroup !== 'Income') {
 			baseRL.actual -= parseFloat(currentRL.actual);
+			baseRL.actualYTD -= parseFloat(currentRL.actualYTD);
 			baseRL.approvedBudget -= parseFloat(currentRL.approvedBudget);
+			baseRL.projectedBudget -= parseFloat(currentRL.projectedBudget);
 			baseRL.processedBudget -= parseFloat(currentRL.processedBudget);
 		} else {
 			baseRL.actual += parseFloat(currentRL.actual);
+			baseRL.actualYTD += parseFloat(currentRL.actualYTD);
 			baseRL.approvedBudget += parseFloat(currentRL.approvedBudget);
+			baseRL.projectedBudget += parseFloat(currentRL.projectedBudget);
 			baseRL.processedBudget += parseFloat(currentRL.processedBudget);
 		}
 		normalizeRL(baseRL);

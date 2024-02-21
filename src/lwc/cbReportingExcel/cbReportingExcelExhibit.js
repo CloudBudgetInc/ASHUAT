@@ -77,25 +77,24 @@ const getReportLinesFromReportingBalances = (RBList) => {
 	const reportLinesMap = {}; // key is dim2 Id and account Id
 	RBList.forEach(rb => {
 		try {
+			if ((rb.c2g__Type__c === 'Actual' && rb.Year__c === _this.selectedBY) || rb.c2g__Type__c === 'Projection') return null; // used only for YTD & Projection report
 			const lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c + rb.c2g__GeneralLedgerAccount__c + rb.Account_Subaccount__c;
 			let reportLine = reportLinesMap[lineKey];
 			if (!reportLine) {
 				reportLine = getNewReportLine(rb, lineKey);
 				reportLinesMap[lineKey] = reportLine;
 			}
-			if (rb.c2g__HomeValue__c && rb.c2g__HomeValue__c !== 0) {
-				if (rb.c2g__Type__c === 'Actual') {
-					let invertedIncomeActual = rb.c2g__HomeValue__c;
-					if (rb.Income_Statement_Group__c === 'Income') {
-						invertedIncomeActual *= -1;
-					}
-					reportLine.actual += parseFloat(invertedIncomeActual);
+			if (rb.c2g__Type__c === 'Actual') {
+				let invertedIncomeActual = rb.c2g__HomeValue__c;
+				if (rb.Income_Statement_Group__c === 'Income') {
+					invertedIncomeActual *= -1;
+				}
+				reportLine.actual += parseFloat(invertedIncomeActual);
+			} else {
+				if (rb.Year__c === _this.selectedBY) {
+					reportLine.approvedBudget += parseFloat(rb.c2g__HomeValue__c);
 				} else {
-					if (rb.Year__c === _this.selectedBY) {
-						reportLine.approvedBudget += parseFloat(rb.c2g__HomeValue__c);
-					} else {
-						reportLine.processedBudget += parseFloat(rb.c2g__HomeValue__c);
-					}
+					reportLine.processedBudget += parseFloat(rb.c2g__HomeValue__c);
 				}
 			}
 		} catch (e) {

@@ -7,6 +7,7 @@ import getNeededAnalyticsServer from "@salesforce/apex/CBExcelReport.getNeededAn
 
 import {round} from "./cbReportingExcelUtils"
 import {manageDataAndGenerateFile, setContext} from "./cbReportingExcelExhibit"
+import {manageDataAndGenerateFileYTD, setContextYTD} from "./cbReportingExcelExhibitYTD"
 import {manageDataAndGenerateTreasuryFile, setTreasuryContext} from "./cbReportingExcelTreasury"
 
 /**
@@ -21,6 +22,9 @@ export default class cbReportingExcel extends LightningElement {
 		{
 			label: 'Budget Exhibit',
 			value: 'Budget Exhibit'
+		}, {
+			label: 'Budget Exhibit YTD & Projection',
+			value: 'Budget Exhibit YTD'
 		}, {
 			label: 'Exec. Committee Report',
 			value: 'Treasury Report'
@@ -116,6 +120,9 @@ export default class cbReportingExcel extends LightningElement {
 			if (this.selectedTemplate === 'Budget Exhibit') {
 				setContext(this);
 				manageDataAndGenerateFile();
+			} else if (this.selectedTemplate === 'Budget Exhibit YTD') {
+				setContextYTD(this);
+				manageDataAndGenerateFileYTD();
 			} else {
 				setTreasuryContext(this);
 				manageDataAndGenerateTreasuryFile();
