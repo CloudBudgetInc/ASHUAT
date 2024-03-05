@@ -1,0 +1,293 @@
+<template>
+    <article class="slds-card">
+        <!-- <div class="slds-card__header slds-grid slds-page-header slds-p-around_none">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate slds-box">
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <div class="slds-card__header-link slds-truncate" title="Balance Sheet">
+                            <lightning-icon icon-name="standard:collection" alternative-text="Balance Sheet" title="Balance Sheet"
+                                class="slds-m-right_x-small"></lightning-icon><span>Balance Sheet (Interactive)</span>
+                        </div>
+                    </h2>
+                </div>
+            </header>
+        </div> -->
+
+        <div class="slds-p-left_small slds-p-top_small button-groups-container">
+            <template if:true={isLoading}>
+                <div class="slds-button-group" role="group">                    
+                    <lightning-button label="Loading..." variant="brand-outline" class="slds-p-around_xx-small">
+                    </lightning-button>                    
+                </div>
+            </template>
+            <template if:false={isLoading}>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_10-of-12">
+                        <div class="slds-button-group" role="group">
+                            <template for:each={companyFilters} for:item="company">
+                                <lightning-button key={company.identifier}
+                                                label={company.value} 
+                                                variant={company.buttonVariant} 
+                                                onclick={handleClick} 
+                                                data-id={company.identifier}
+                                                class="slds-p-around_xx-small">
+                                </lightning-button>
+                            </template>
+                        </div>&nbsp;|&nbsp;            
+                        <div class="slds-button-group" role="group">
+                            <template for:each={yearFilters} for:item="year">
+                                <lightning-button key={year.identifier}
+                                                label={year.value} 
+                                                variant={year.buttonVariant} 
+                                                onclick={handleYearClick} 
+                                                data-id={year.identifier}
+                                                class="slds-p-around_xx-small">
+                                </lightning-button>
+                            </template>
+                        </div>&nbsp;|&nbsp;
+                        <div class="slds-button-group" role="group">
+                            <template for:each={trialBalance1Filters} for:item="tb1">
+                                <lightning-button key={tb1.identifier}
+                                                label={tb1.value} 
+                                                variant={tb1.buttonVariant} 
+                                                onclick={handleTb1Click} 
+                                                data-id={tb1.identifier}
+                                                class="slds-p-around_xx-small">
+                                </lightning-button>
+                            </template>
+                        </div>
+                        &nbsp;|&nbsp;
+                        <lightning-button-icon icon-name="action:priority"  
+                                            alternative-text="Flagged"
+                                            title="Flagged"
+                                            variant={flaggedButtonVariant}
+                                            onclick={handleFlagClick}>
+                        </lightning-button-icon>
+                        <lightning-button-icon icon-name="utility:budget_period"
+                                            variant="bare"
+                                            alternative-text={defaultPeriods}
+                                            icon-class="slds-m-around_medium">
+                        </lightning-button-icon>
+                        <template if:true={userCanResolve}>
+                        <lightning-button-icon icon-name="utility:currency"
+                                            variant="bare"
+                                            alternative-text={totalBalance}
+                                            icon-class="slds-m-around_medium">
+                        </lightning-button-icon>       
+                        </template>                 
+                    </div>
+                    <div class="slds-col slds-size_2-of-12 slds-text-heading_small slds-p-top_medium slds-p-right_medium slds-text-align_right">
+                        <lightning-button label="Refresh" variant="base" onclick={refreshPage} class="custom-button-small"></lightning-button>
+                    </div>
+                </div>
+
+            <template if:true={isTb1Selected}>
+                <div class="slds-m-bottom_small">
+                    <div class="slds-button-group" role="group">
+                        <template for:each={trialBalance3Filters} for:item="tb3">
+                            <lightning-button key={tb3.identifier}
+                                            label={tb3.value} 
+                                            variant={tb3.buttonVariant} 
+                                            onclick={handleTb3Click} 
+                                            data-id={tb3.identifier}                                            
+                                            class="slds-p-around_xx-small">
+                            </lightning-button>
+                        </template>
+                    </div>
+                </div>
+            </template>
+        </template>
+
+        </div>    
+        <div class="slds-card__body slds-card__body_inner">
+            <template if:false={isLoading}>                
+                    <lightning-datatable key-field="id" 
+                                        data={balancesData}
+                                        columns={columns}
+                                        onsort={handleSort}
+                                        onrowaction={handleRowAction}
+                                        class="my-custom-datatable"
+                                        hide-checkbox-column
+                                        show-row-number-column  
+                                        >
+                    </lightning-datatable>                
+            </template>
+        </div>
+    </article>
+
+    <template if:true={showModal}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open my-modal">
+            <div class="slds-modal__container">
+                <!-- Modal/Popup Header -->
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium">{modalHeader} [{selectedRowData.accountSubaccount}]</h2>
+                </header>
+                <!-- Modal/Popup Body -->
+                <div class="slds-modal__content slds-p-around_medium">
+                    <template if:true={modalAssignTask}>
+                        <div class="slds-form">
+                            <!-- Dropdown -->
+                            <div class="slds-form-element">                                
+                                <div class="slds-form-element__control">
+                                    <lightning-combobox
+                                        name="dropdown"
+                                        label="Assignee"
+                                        value={assigneeId}
+                                        options={userOptions}
+                                        onchange={handleAssigneeChange}
+                                        required="true"
+                                    ></lightning-combobox>
+                                </div>
+                            </div>
+        
+                            <div class="slds-form-element">                                
+                                <div class="slds-form-element__control">
+                                    <lightning-textarea
+                                        label="Comment"
+                                        value={assigneeComment}
+                                        onchange={handleCommentChange}
+                                        required="true"
+                                    ></lightning-textarea>
+                                </div>
+                            </div>
+        
+                        </div>
+                    </template>
+                    <template if:true={modalRespond}>
+                        <div class="slds-form-element">                                
+                            <div class="slds-form-element__control">
+                                <lightning-textarea                                    
+                                    label="Comment"
+                                    value={assigneeComment}
+                                    onchange={handleCommentChange}
+                                    required="true"
+                                ></lightning-textarea>
+                            </div>
+                        </div>
+
+                    </template>
+                    <template if:true={modalViewComments}>
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr class="slds-line-height_reset">                                   
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Date">Date</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Comment">Comment</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Assignee">Assignee</div>
+                                    </th> 
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Commentor">Commentor</div>
+                                    </th>     
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Status">Status</div>
+                                    </th>  
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Archived">Archived</div>
+                                    </th>                                    
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <template if:false={zeroComments}>
+                                    <template for:each={processedComments} for:item="comment">
+                                        <tr key={comment.Id}>   
+                                            <td data-label="Status">
+                                                <div class="slds-truncate" title={comment.CreatedDate}>
+                                                    <lightning-formatted-date-time value={comment.CreatedDate} year="numeric" month="numeric" day="numeric" hour="2-digit"
+                                                    minute="2-digit" time-zone-name="short">
+                                                    </lightning-formatted-date-time>
+                                                </div>
+                                            </td>                                     
+                                            <td data-label="Content">
+                                                <div class="slds-truncate" title="Content">{comment.Content__c}</div>
+                                            </td>
+                                            <td data-label="Name">
+                                                <div class="slds-truncate" title="Name">{comment.AssigneeName}</div>
+                                            </td>
+                                            <td data-label="Commentor">
+                                                <div class="slds-truncate" title="Name">{comment.CreatedBy.Name}</div>
+                                            </td>
+                                            <td data-label="Status">
+                                                <div class="slds-truncate" title="Status">{comment.Status__c}</div>
+                                            </td>                                            
+                                            <td data-label="Archived">
+                                                <!-- <div class="slds-truncate" title="Archived">{comment.Archived__c}</div> -->
+                                                <div class="slds-truncate">
+                                                    <lightning-input type="checkbox"
+                                                                    checked={comment.Archived__c}
+                                                                    data-id={comment.Id}
+                                                                    onchange={handleArchiveChange}
+                                                                    class="slds-m-around_x-small">
+                                                    </lightning-input>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                                <template if:true={zeroComments}>
+                                    <tr><td colspan="6">No Comments to display.</td></tr>
+                                </template>
+                            </tbody>
+                        </table>
+                    </template>
+                    
+                    
+                </div>
+                <!-- Modal/Popup Footer -->
+                <footer class="slds-modal__footer">
+                    <template if:true={saveButton}>
+                        <lightning-button variant="neutral" label="Cancel" title="Cancel" onclick={closeModal} ></lightning-button>
+                        <lightning-button variant="brand" label="Save" title="Save" onclick={handleModalSave} class="slds-p-left_x-small"></lightning-button>
+                    </template>
+                    <template if:false={saveButton}>
+                        <template if:false={zeroComments}>
+                            <lightning-button variant="base" label="Archive All" class="slds-m-right_x-small" title="Archive All" onclick={handleArchiveAllComments} ></lightning-button>  
+                        </template>
+                        <lightning-button variant="base" label={archiveButtonText} class="slds-m-right_x-small" title={archiveButtonText} onclick={showArchivedComments} ></lightning-button>  
+                        <lightning-button variant="neutral" label="Close" title="Close" onclick={closeModal} ></lightning-button>                        
+                    </template>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template>
+
+    <!-- <template if:true={showTransactionModal}>
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open transaction-modal">
+            <div class="slds-modal__container">                
+                <header class="slds-modal__header">
+                    <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closeTransactionModal}>
+                        <lightning-icon icon-name="utility:close" alternative-text="close" size="small"></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+                    <h2 class="slds-text-heading_medium">Transaction Details for {selectedAccountSubaccount}</h2>
+                </header>                
+                <div class="slds-modal__content slds-p-around_medium">
+                    <lightning-datatable key-field="Id"
+                                         data={accountTransactions}
+                                         columns={transactionColumns}
+                                         hide-checkbox-column
+                                         show-row-number-column>
+                    </lightning-datatable>
+                </div>                
+                <footer class="slds-modal__footer">
+                    <lightning-button variant="neutral" label="Close" title="Close" onclick={closeTransactionModal}></lightning-button>
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </template> -->
+
+    <div class="showSpinner" if:true={showSpinner}>
+        <!-- <lightning-spinner alternative-text="Loading" variant="brand"></lightning-spinner><br />Loading... -->
+        <lightning-spinner alternative-text={spinnerMessage} size="medium"></lightning-spinner>
+        <div class="spinner-text">{spinnerMessage}</div>
+    </div>
+</template>

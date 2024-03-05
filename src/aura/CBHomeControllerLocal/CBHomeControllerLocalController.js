@@ -17,6 +17,6 @@
 		h.helpHandleBLockMenu(cmp, selectedMenuItemValue);
 	},
 	runBudgetDataGeneration: function(cmp, evt, h) {
-	    h.helpRunBudgetDataFromStagersGeneration(cmp);
+		h.helpRunBudgetDataFromStagersGeneration(cmp);
 	}
 });

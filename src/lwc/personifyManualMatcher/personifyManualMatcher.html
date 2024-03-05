@@ -1,0 +1,133 @@
+<template>
+	<article class="slds-card">
+
+		<div class="slds-card__header slds-grid slds-page-header slds-p-around_none">
+			<header class="slds-media slds-media_center slds-has-flexi-truncate slds-box">
+				<div class="slds-media__body">
+					<h2 class="slds-card__header-title">
+						<div class="slds-card__header-link slds-truncate" title="Reconcile">
+							<lightning-icon icon-name="standard:budget" alternative-text="Reconcile" title="Reconcile"
+								class="slds-m-right_x-small"></lightning-icon><span>Manual Match</span>
+						</div>
+					</h2>
+				</div>
+				
+				<lightning-button variant="brand-outline" label="Reset" title="Reset" onclick={handleReset}
+					class="slds-m-left_x-small" disabled={buttondisabled}></lightning-button>
+				<lightning-button variant="brand" label={buttonLabel} title={buttonLabel} onclick={checkMatch}
+					class="slds-m-left_x-small" disabled={buttondisabled}></lightning-button>
+
+			</header>
+		</div>	
+
+			<div class="slds-card__body slds-card__body_inner slds-border_top">
+				<div class="slds-grid slds-wrap slds-p-top_x-small">
+					<div class="slds-col slds-size_1-of1 slds-text-align_left slds-text-heading_small">
+						Personify Transactions
+					</div>			
+				</div>
+				<div class="slds-grid slds-wrap">
+					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
+						<lightning-input type="date" label="Start Date" class="searchInput slds-p-around_xx-small"
+							value={PERSONIFYstartDate} onchange={PERSONIFYHandleInputChange} name="startDate"></lightning-input>
+					</div>
+
+					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
+						<lightning-input type="date" label="End Date" class="searchInput slds-p-around_xx-small"
+							value={PERSONIFYendDate} onchange={PERSONIFYHandleInputChange} name="endDate"></lightning-input>
+					</div>
+
+					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
+						<lightning-input type="search" label="Customer Number" class="searchInput slds-p-around_xx-small"
+							value={PERSONIFYCustomerFilter} onchange={PERSONIFYHandleInputChange} name="CustomerFilter">
+						</lightning-input>
+					</div>
+
+					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
+						<lightning-input type="search" label="Order ID" class="searchInput slds-p-around_xx-small"
+							value={PERSONIFYOrderFilter} onchange={PERSONIFYHandleInputChange} name="OrderFilter">
+						</lightning-input>
+					</div>
+
+					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
+						<lightning-input type="search" label="Bill To" class="searchInput slds-p-around_xx-small"
+							value={PERSONIFYBillToFilter} onchange={PERSONIFYHandleInputChange} name="BillToFilter">
+						</lightning-input>
+					</div>
+
+					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
+						<lightning-input type="currency" label="Amount" class="searchInput slds-p-around_xx-small"
+							value={PERSONIFYAmountFilter} onchange={PERSONIFYHandleInputChange} name="AmountFilter">
+						</lightning-input>
+					</div>
+				</div>
+			</div>
+
+			<div class="slds-card__body slds-card__body_inner slds-border_top">
+				<div class="slds-grid slds-wrap slds-p-top_x-small ">
+					<div
+						class="slds-col slds-size_1-of3 slds-text-align_center slds-text-heading_medium slds-text-title_caps header2">
+						<template if:true={isMatching}>	
+							<template if:true={reconciled}>
+								<lightning-icon icon-name="utility:success" alternative-text="Reconciled" variant="success"
+									title="Reconciled" size="small" class="slds-m-left_x-small"></lightning-icon>
+							</template>
+							<template if:false={reconciled}>
+								<lightning-icon icon-name="utility:warning" alternative-text="Not Reconciled" variant="warning"
+									title="Not Reconciled" size="small" class="slds-m-left_x-small"></lightning-icon>
+							</template>
+						</template>
+					</div>					
+					<div
+						class="slds-col slds-size_1-of3 slds-text-align_right slds-text-heading_medium slds-text-title_caps header2">
+						Selected Total: <lightning-formatted-number value={PERSONIFYselectedTotal} format-style="currency"
+							currency-code="USD"></lightning-formatted-number>
+					</div>
+				</div>
+			</div>
+
+			<div class="slds-card__body slds-card__body_inner">
+				<template if:false={PERSONIFYhasRows}>
+					<div class="slds-text-align_center slds-text-color_weak">No rows to display.</div>
+				</template>
+
+				<template if:true={PERSONIFYhasRows}>
+					<lightning-datatable key-field="id" data-table="PERSONIFY" data={PERSONIFYrecordData} columns={PERSONIFYcolumns}
+						onsort={handleSort} onrowselection={PERSONIFYhandleRowSelection}></lightning-datatable>
+				</template>
+			</div>
+
+	</article>
+
+	<template if:true={showModal}>
+		<section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+			aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+			<div class="slds-modal__container">
+				<header class="slds-modal__header">
+					<button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={hideModal}>
+                        <lightning-icon icon-name="utility:close"
+                            alternative-text="close"
+                            variant="inverse"
+                            size="small" ></lightning-icon>
+                        <span class="slds-assistive-text">Close</span>
+                    </button>
+					<h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Partial Match Detected
+					</h2>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+					<p>Transactions do not net to zero. Click the <strong>Cancel</strong> button to go back.</p>
+				</div>
+				<footer class="slds-modal__footer">
+					<lightning-button variant="brand-outline" label="Cancel" title="Cancel" onclick={hideModal}>
+					</lightning-button>
+				</footer>
+			</div>
+		</section>
+		<div class="slds-backdrop slds-backdrop_open"></div>
+	</template>
+
+	<div class="showSpinner" if:true={loading}>
+		<lightning-spinner alternative-text="Loading" variant="brand"></lightning-spinner>
+	</div>
+
+</template>

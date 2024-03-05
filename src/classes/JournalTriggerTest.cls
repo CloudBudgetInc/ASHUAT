@@ -1,6 +1,10 @@
 @isTest(SeeAllData=true)
 public class JournalTriggerTest {
 
+    /**
+     * Tests journal validation by inserting a few lines with invalid combination rules, then 
+     * firing the trigger.
+     */
 	static testMethod void testJournalValidation() {    
     	    
         FfaDataProvider provider = FfaDataProvider.getInstance();
@@ -12,7 +16,7 @@ public class JournalTriggerTest {
         someJournal.c2g__JournalDescription__c = 'Test Journal 999';
         insert someJournal;
         
-        // bad line.
+        // bad 'native' line.
         c2g__codaJournalLineItem__c someLine = new c2g__codaJournalLineItem__c();
         someLine.c2g__Journal__c = someJournal.Id;
         someLine.c2g__GeneralLedgerAccount__c = provider.getGlaCode('7020');
@@ -25,7 +29,7 @@ public class JournalTriggerTest {
         someLine.c2g__Value__c = 100;
         insert someLine;
         
-        // bad line.
+        // bad intercompany line.
         c2g__codaJournalLineItem__c anotherLine = new c2g__codaJournalLineItem__c();
         anotherLine.c2g__Journal__c = someJournal.Id;
         anotherLine.c2g__GeneralLedgerAccount__c = provider.getGlaCode('7020');
@@ -46,6 +50,5 @@ public class JournalTriggerTest {
         c2g__codaJournal__c testJournal = [SELECT Id, Invalid_Lines__c FROM c2g__codaJournal__c 
                                           WHERE c2g__JournalDescription__c = 'Test Journal 999'];
         System.assertEquals(2, testJournal.Invalid_Lines__c);            
-        
     }
 }

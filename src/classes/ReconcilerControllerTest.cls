@@ -77,7 +77,23 @@ public class ReconcilerControllerTest {
                                                                                '', 
                                                                                '', 
                                                                                '');
-        System.assert(evenMoreResults.size() > 0);        
+        System.assert(evenMoreResults.size() > 0);
+        
+        List<ReconcilerController.MergedTransaction> yepMoreResults = ReconcilerController.transactions(someReconcilation.Id,
+            																   string.valueOf(date.today().addDays(-120)), 
+                                                                               string.valueOf(date.today()), 
+                                                                               'ACH', // Type
+                                                                               'Zaijsowi', // Reference
+                                                                               '998.00', // Amount
+                                                                               'All', // Match Status
+                                                                               '', // Check Filter
+            																   string.valueOf(date.today().addDays(-120)), 
+                                                                               string.valueOf(date.today()), 
+                                                                               'ACH', 
+                                                                               '', 
+                                                                               '', 
+                                                                               '');    
+        System.assert(yepMoreResults.size() > 0);             
     }
 
     @isTest

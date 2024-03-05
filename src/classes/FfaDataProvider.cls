@@ -109,6 +109,10 @@ public class FfaDataProvider {
         return intersectLookup.get(name);
     }
     
+    public boolean checkGlaCode(String reportingCode) {
+        return glaLookup.containsKey(reportingCode);
+    }        
+    
     public Id getGlaCode(String reportingCode) {
         return glaLookup.get(reportingCode);
     }
@@ -121,6 +125,10 @@ public class FfaDataProvider {
         return dimension1Lookup.get(reportingCode);
     }      
     
+    public boolean checkDimension1(String reportingCode) {
+        return dimension1Lookup.containsKey(reportingCode);
+    }    
+    
     public Id getDimension2(String reportingCode) {
         return dimension2Lookup.get(reportingCode).Id;
     }  
@@ -128,7 +136,15 @@ public class FfaDataProvider {
     public c2g__codaDimension2__c getFullDimension2(String reportingCode) {
         return dimension2Lookup.get(reportingCode);
     }  
+    
+    public boolean checkDimension2(String reportingCode) {
+        return dimension2Lookup.containsKey(reportingCode);
+    }
 
+    public boolean checkDimension3(String reportingCode) {
+        return dimension3Lookup.containsKey(reportingCode);
+    }        
+    
     public Id getDimension3(String reportingCode) {
         return dimension3Lookup.get(reportingCode).Id;
     }
@@ -136,6 +152,10 @@ public class FfaDataProvider {
     public c2g__codaDimension3__c getFullDimension3(String reportingCode) {
         return dimension3Lookup.get(reportingCode);
     }      
+    
+    public boolean checkDimension4(String reportingCode) {
+        return dimension4Lookup.containsKey(reportingCode);
+    }        
 
     public Id getDimension4(String reportingCode) {
         return dimension4Lookup.get(reportingCode).Id;

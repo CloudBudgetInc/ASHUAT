@@ -1,0 +1,244 @@
+<template> 
+
+      <lightning-record-edit-form
+  object-api-name="Contact"
+  record-id={contactId}>  
+
+  <p class="title">American Society of Hematology Subscription Center</p>
+  <lightning-input class="subscribe checkBox" type="checkbox" data-id="subscribeAll" checked={checkbox24} onchange={handleCheckAll} label="Subscribe to ALL email communications."></lightning-input>
+          <table class="table ASH" border=1>
+            <tr>
+              <td class="slds-text-align_center"><strong>Communication</strong></td>
+              <td class="slds-text-align_center"><strong>Description</strong></td>
+              <td class="slds-text-align_center slds-p-left_large slds-p-right_large"><strong><span style="white-space: nowrap;">Opt-In</span></strong></td>
+            </tr>
+            <tr class="dark">
+               <td colspan="3"><h2 align="center">Promotional Email Subscriptions</h2></td>
+            </tr>
+        
+            <tr class="ccc">
+              <td class="ccc"  colspan="3"><strong><h4>ASH Meetings</h4></strong></td>
+            </tr>
+
+            <tr ><!--SUB1 -- ASH ANNUAL MEETING -- SUB1-->
+              <td class="ASHtd"><strong>ASH Annual Meeting</strong></td>
+              <td class="ASHtd">The premier event in hematology, held annually in December, with in-person and virtual
+access to the latest educational and scientific hematology content and great networking
+opportunities.</td>
+              <td class="ASHtd"><lightning-input-field field-name ="ASH_Annual_Meeting__c" variant="label-hidden" class="checkBox" type="checkbox" data-id="ASH_Annual_Meeting__c" checked={ASH_Annual_Meeting__c} value={checkbox1} onchange={handleCheck1}></lightning-input-field></td>
+            </tr>
+
+            <tr><!--SUB2 -- ASH MEETING ON HEMATOLOGIC MALIGNANCIES AND ASH CONSULTATIVE HEMATOLOGY COURSE-- SUB2-->
+              <td class="ASHtd"><strong>ASH Meeting on Hematologic Malignancies &amp; ASH Consultative Hematology Course</strong></td>
+              <td class="ASHtd">Top experts in the field present cutting-edge scientific data and innovative treatment
+approaches for management of hematologic malignancies. The Consultative Hematology
+Course is offered as an add-on event and focuses on classical hematology.</td>
+              <td class="ASHtd"><lightning-input-field field-name ="ASH_Meeting_on_Hematologic_Malignancies__c"  variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="ASH_Meeting_on_Hematologic_Malignancies__c" value={checkbox2} onchange={handleCheck2}></lightning-input-field>    </td>
+            </tr>
+
+            <tr><!--SUB3 -- ASH SUMMIT ON IMMUNOTHERAPIES FOR HEMATOLOGIC DISEASES-- SUB3-->
+               <td class="ASHtd"><strong>ASH Summit on Immunotherapies for Hematologic Diseases</strong></td>
+               <td class="ASHtd">A gathering of academic, medical, industry, and federal regulatory communities to
+address obstacles in immunotherapy treatment development for classical and malignant
+hematology.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Latest_in_Precision_Medicine_and_Immuno__c"  variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Latest_in_Precision_Medicine_and_Immuno__c" value={checkbox3} onchange={handleCheck3}></lightning-input-field></td>
+            </tr>
+
+            <tr><!--SUB4 -- HIGHLIGHTS OF ASH-- SUB4-->
+               <td class="ASHtd"><strong>Highlights of ASH</strong></td>
+               <td class="ASHtd">Highlights of ASH North America and International offer a synopsis of the top hematology
+research presented at the latest ASH annual meeting, adapted to the region with great
+networking opportunities.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Highlights_of_ASH__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Highlights_of_ASH__c" value={checkbox4} onchange={handleCheck4}></lightning-input-field></td>
+            </tr>
+
+            <tr class="ccc">
+              <td class="ccc" colspan="3"><h4><strong>ASH Quality Improvement</strong></h4></td>
+            </tr>
+
+            <tr><!--SUB5 -- ASH QUALITY IMPROVEMENT AND CLINICAL PRACTICE GUIDELINES -- SUB5-->
+               <td class="ASHtd"><strong>ASH Quality Improvement and Clinical Practice Guidelines</strong></td>
+               <td class="ASHtd">ASH resources for practitioners to help improve the quality of hematologic care provided
+to patients including evidence-based clinical practice guidelines developed by leading
+clinical, methodological, and patient experts.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="ASH_Quality_Improvement_and_Clinical_Pra__c" data-id="ASH_Quality_Improvement_and_Clinical_Pra__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" value={checkbox5} onchange={handleCheck5}></lightning-input-field></td>
+           </tr> 
+
+
+           <tr class="ccc">
+              <td class="ccc" colspan="3"><h4><strong>ASH Awards</strong></h4></td>
+           </tr>
+
+
+           <tr><!--SUB6 -- MEDICAL STUDENT AWARDS -- SUB6-->
+               <td  class="ASHtd" ><strong>Medical Student Awards</strong></td>
+               <td  class="ASHtd" >Opportunities for aspiring hematologists in medical school or residency to receive
+research funding and mentorship. Remember to update your profile when you move into
+the next stage in your career!</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Medical_Students__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Medical_Students__c" value={checkbox6} onchange={handleCheck6}></lightning-input-field></td>
+           </tr>
+
+            <tr><!--SUB7 -- CAREER AND TRAINING AWARDS AND PROGRAMS -- SUB7-->
+               <td  class="ASHtd" ><strong>Career and Training Awards and Programs</strong></td>
+               <td  class="ASHtd" >Funding and training opportunities for hematology fellows, junior faculty, and senior
+research faculty at various career stages.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Career_and_Training__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Career_and_Training__c"  value={checkbox7} onchange={handleCheck7}></lightning-input-field></td>
+           </tr>
+
+
+            <tr><!--SUB8 -- HONORIFIC AND MENTOR AWARDS -- SUB8-->
+               <td class="ASHtd"><strong>Honorific and Mentor Awards</strong></td>
+               <td  class="ASHtd" >Submit nominations for ASH’s most prestigious awards to recognize significant contributions to the field and dedicated mentorship.</td>
+               <td  class="ASHtd"><lightning-input-field field-name ="Honorific_and_Mentor__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Honorific_and_Mentor__c" value={checkbox8} onchange={handleCheck8}></lightning-input-field> </td>
+           </tr>
+
+          <tr class="ccc">
+              <td class="ccc" colspan="3"><h4><strong>Online Education and Jobs</strong></h4></td>
+           </tr>
+
+            <tr><!--SUB9 -- ASH Educational Webinars and Podcasts -- SUB9-->
+               <td class="ASHtd"><strong>ASH Educational Webinars and Podcasts</strong></td>
+               <td class="ASHtd">Educational resources developed by subject-matter experts including webinars and webcasts – some offering CME and MOC credits.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Webinars_Webcasts_Podcasts__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Webinars_Webcasts_Podcasts__c" value={checkbox9} onchange={handleCheck9}></lightning-input-field></td>
+           </tr>
+
+            <tr><!--SUB10 -- Job Center Opportunities -- SUB10-->
+               <td class="ASHtd"><strong>Job Center Opportunities</strong></td>
+               <td class="ASHtd">Access job postings through one of the top online search results for hematology. Purchase credits to post your open positions and get visibility 24/7.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Job_Center_Opportunities__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Job_Center_Opportunities__c" value={checkbox10} onchange={handleCheck10}></lightning-input-field></td>
+           </tr>
+
+
+           <tr class="ccc">
+              <td class="ccc" colspan="3"><h4><strong>Global Programs</strong></h4></td>
+           </tr>
+
+            <tr><!--SUB11 -- Global Opportunities -- SUB11-->
+               <td class="ASHtd"><strong>Global Opportunities</strong></td>
+               <td class="ASHtd">Resources and opportunities for hematologists working and residing outside of the U.S., Canada, and Mexico. </td>
+               <td class="ASHtd"><lightning-input-field field-name ="Global_Opportunities__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkBox" data-id="Global_Opportunities__c" value={checkbox11} onchange={handleCheck11}></lightning-input-field></td>
+           </tr>
+
+            <tr class="ccc">
+              <td class="ccc"  colspan="3"><h4><strong>Training</strong></h4></td>
+           </tr>
+
+            <tr><!--SUB12 -- Opportunities for Trainees -- SUB12-->
+               <td class="ASHtd"><strong>Opportunities for Trainees</strong></td>
+               <td class="ASHtd">Resources to help students, residents, and fellows advance their hematology careers.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Opportunities_for_Trainees__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkBox" data-id="Opportunities_for_Trainees__c" value={checkbox12} onchange={handleCheck12}></lightning-input-field>
+              </td>
+           </tr>
+
+            <tr><!--SUB13 -- Interest in Medical Education and Recruitment -- SUB13-->
+               <td class="ASHtd"><strong>Interest in Medical Education and Recruitment</strong></td>
+               <td class="ASHtd">Opportunities to learn about medical education and help foster the next generation of hematologists by supporting trainee programs and initiatives and assisting with recruitment into the field.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Medical_Education_and_Recruitment__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Medical_Education_and_Recruitment__c" value={checkbox13} onchange={handleCheck13}></lightning-input-field> </td>
+           </tr>
+
+            <tr class="dark">
+               <td colspan="3"><h2 align="center">E-Newsletter Subscriptions</h2></td>
+            </tr>
+               <tr><!--SUB14 -- Advance Notice -- SUB14-->
+               <td class="ASHtd"><strong>Advance Notice</strong></td>
+               <td class="ASHtd">Advance Notice provides highlights from issues of Blood Advances, the open-access journal of the American Society of Hematology (ASH), led by  Editor-in-Chief Catherine M. Bollard, MBChB, MD, FRACP, FRCPA, , and Deputy Editor Andrew S. Weyrich, PhD.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Advance_Notice__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Advance_Notice__c" value={checkbox14} onchange={handleCheck14}></lightning-input-field></td>
+           </tr>
+
+            <tr><!--SUB15 -- Blood Advances Highlights -- SUB15-->
+               <td class="ASHtd"><strong>Blood Advances Highlights</strong></td>
+               <td class="ASHtd">Blood Advances Highlights is a biweekly newsletter highlighting trending articles from the recent issue of Blood Advances.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="Blood_Advances_Highlights__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Blood_Advances_Highlights__c" value={checkbox15} onchange={handleCheck15}></lightning-input-field></td>
+           </tr>
+
+          <tr><!--SUB16 -- This Week in Blood -- SUB16-->
+               <td class="ASHtd"><strong>This Week in Blood</strong></td>
+               <td class="ASHtd">This Week in Blood is a weekly snapshot of the hottest studies from each week’s issue of Blood, the official journal of the American Society of Hematology (ASH), hand-picked by Blood Editor-in-Chief Nancy Berliner, MD, and Deputy Editor Andrew Roberts, MBBS, PhD.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="This_Week_in_Blood__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="This_Week_in_Blood__c" value={checkbox16} onchange={handleCheck16}></lightning-input-field></td>
+           </tr>
+
+
+           <tr><!--SUB17 -- ASH Clinical News -- SUB17-->
+               <td class="ASHtd"><strong>ASH Clinical News</strong></td>
+               <td class="ASHtd">Receive the latest from ASH’s magazine covering news and views from the broader hematology/oncology community.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="ASH_Clinical_Trials__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="ASH_Clinical_Trials__c" value={checkbox17} onchange={handleCheck17}></lightning-input-field> </td>
+           </tr>          
+
+
+           <tr><!-- <--SUB18 -- Hematopoiesis -- SUB18> -->
+               <td class="ASHtd"><strong>Hematopoiesis</strong></td>
+               <td class="ASHtd">Get updates in hematology for trainees, written by trainees, including news on ASH trainee initiatives.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="TraineE_News__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="TraineE_News__c" value={checkbox25} onchange={handleCheck25}></lightning-input-field> </td>
+           </tr>      
+
+
+           <tr><!--SUB19 -- ASH Practice Update -- SUB19-->
+               <td class="ASHtd"><strong>ASH Practice Update</strong></td>
+               <td class="ASHtd">Get the latest policy highlights and news on ASH efforts to improve the quality of hematologic care.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="ASH_Practice_Update__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="ASH_Practice_Update__c" value={checkbox18} onchange={handleCheck18}></lightning-input-field></td>
+           </tr>     
+
+            <template lwc:if={membershipStatus}>
+           <tr><!--SUB22 -- NEWSLINK -- SUB22-->
+               <td class="ASHtd"><strong>NewsLink</strong></td>
+               <td class="ASHtd">Get the latest Society news and updates on events, resources, and upcoming deadlines.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="ASH_Newslink__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="ASH_Newslink__c" value={checkbox20} onchange={handleCheck20}></lightning-input-field></td>
+           </tr>     
+          </template>
+           <template lwc:if={membershipStatus}>
+           <tr><!--SUB23 -- THE HEMATOLOGIST-- SUB23-->
+               <td class="ASHtd"><strong>The Hematologist</strong></td>
+               <td class="ASHtd">Receive the latest from the Society’s member newsletter.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="The_Hematologist__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="The_Hematologist__c" value={checkbox21} onchange={handleCheck21}></lightning-input-field>   </td>
+           </tr>     
+          </template>
+          
+            <tr><!--SUB24 -- ASH NEWS DAILY-- SUB24-->
+               <td class="ASHtd"><strong>ASH News Daily</strong></td>
+               <td class="ASHtd">Read the official ASH annual meeting newspaper and get the latest updates on meeting sessions and events as well as profiles of award recipients and key leaders in the field.</td>
+               <td class="ASHtd"><lightning-input-field field-name ="ASH_News_Daily__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="ASH_News_Daily__c" value={checkbox22} onchange={handleCheck22}></lightning-input-field> </td>
+           </tr> 
+              <tr><!--SUB25 -- Advance Notice -- SUB25-->
+                <td class="ASHtd"><strong>Advance Notice</strong></td>
+                <td class="ASHtd">Advance Notice provides highlights from issues of Blood Advances, the open-access journal of the American Society of Hematology (ASH), led by  Editor-in-Chief Catherine M. Bollard, MBChB, MD, FRACP, FRCPA, , and Deputy Editor Andrew S. Weyrich, PhD.</td>
+                <td class="ASHtd"><lightning-input-field field-name ="Advance_Notice__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="Advance_Notice__c" value={checkbox14} onchange={handleCheck14}></lightning-input-field></td>
+            </tr> 
+            <tr><!--SUB25 -- Highlights: Blood Neoplasia -- SUB25-->
+                <td class="ASHtd"><strong>On Point Blood Neoplasia</strong></td>
+                <td class="ASHtd">Blood Neoplasia is a new open-access journal from the American Society of Hematology (ASH), Jonathan Licht, MD, Inaugural Editor-in-Chief.
+
+                  "On Point Blood Neoplasia" is distributed monthly and provides a targeted view into new research focusing on hematologic malignancies, including leukemia, lymphoma, multiple myeloma, Waldenström macroglobulinemia, myeloproliferative neoplasms, minimal residual disease, and precursor conditions to neoplasia.</td>
+                <td class="ASHtd"><lightning-input-field field-name ="On_Point_Blood_Neoplasia__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="On_Point_Blood_Neoplasia__c" value={checkbox26} onchange={handleCheck26}></lightning-input-field></td>
+            </tr>
+
+            <tr><!--SUB26 -- AHighlights: Blood VTH -- SUB26-->
+                <td class="ASHtd"><strong>On Point Blood VTH</strong></td>
+                <td class="ASHtd">Blood Vessels, Thrombosis & Hemostasis (VTH) is a new open-access journal from the American Society of Hematology (ASH), led by Keith McCrae, MD, Inaugural Editor-in-Chief.
+
+                  "On Point Blood VTH" is distributed monthly and provides a targeted view into new research concerning the clinical and mechanistic aspects of normal and abnormal hemostasis and vascular function.</td>
+                <td class="ASHtd"><lightning-input-field field-name ="On_Point_Blood_VTH__c" variant="label-hidden" class="slds-p-left_xxx-large checkBox" type="checkbox" data-id="On_Point_Blood_VTH__c" value={checkbox27} onchange={handleCheck27}></lightning-input-field></td>
+            </tr>
+
+
+
+   </table>
+
+   <div class="ASH"> 
+    <span><lightning-input  field-name ="HasOptedOutOfEmail" variant="label-hidden" class="slds-p-left_xx-large checkBox2" type="checkbox" data-id="HasOptedOutOfEmail" onchange={handleUnCheckAll} checked={checkbox23}  ></lightning-input></span>
+    <span style="font: Calibri, sans-serif;">Click here to unsubscribe from <b>ALL</b> emails </span> <br>
+    <span style="font-size:12px; font: Calibri, sans-serif;"><i>(After unsubscribing from all email promotions, ASH members may occasionally receive informational communications from ASH about changes to their account or specific ASH programs and services that directly relate to their membership status.) </i></span>
+   <br>
+   <br>
+   <lightning-button
+   class="slds-m-top_small slds-p-around_large"
+   variant="brand"
+   type="submit"
+   name="update"
+   label="Update"
+   onclick={handleClick}
+ >
+ </lightning-button>
+</div>
+ </lightning-record-edit-form>
+
+</template>

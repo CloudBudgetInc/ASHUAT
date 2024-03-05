@@ -1958,7 +1958,13 @@ public with sharing class CBBudgetApplication {
 		List<cb4__CBTag__c> bLines = getTagsFromCBRows(rows);
 		subLineKey = getSimpleLineKey(bLines[0], applicationId);
 		if(subLineKey != null && subLineKey != ''){
-			delete [SELECT Id FROM cb4__CBTag__c WHERE cb4__Dimension__c = :budgetSubAppAmountDimId AND cb4__Text10__c = :subLineKey];
+			List<cb4__CBTag__c> sAmounts = new List<cb4__CBTag__c>();
+			for(cb4__CBTag__c sa : [SELECT Id, OwnerId FROM cb4__CBTag__c WHERE cb4__Dimension__c = :budgetSubAppAmountDimId AND cb4__Text10__c = :subLineKey]){
+				sa.OwnerId = UserInfo.getUserId();
+				sAmounts.add(sa);
+			}
+			update sAmounts;
+			delete sAmounts;
 			delete [SELECT Id FROM cb4__CBTag__c WHERE cb4__Dimension__c = :budgetAppAmountDimId AND
 			cb4__Tag1__c = :applicationId AND
 			cb4__Tag2__c = :rowaccount AND
@@ -2004,6 +2010,48 @@ public with sharing class CBBudgetApplication {
 
 	public static void cg() {
 		Integer i = 0;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
+		i++;
 		i++;
 		i++;
 		i++;

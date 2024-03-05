@@ -11,8 +11,12 @@
 						</div>
 					</h2>
 				</div>
+				<!--
 				<lightning-button variant="base" label="Clear Data" title="Clear Data" onclick={handleClearData} disabled={buttondisabled}>
 				</lightning-button>
+				-->
+				<lightning-button variant="brand-outline" label="Relay" title="Relay" onclick={handleRelay}
+					class="slds-m-left_x-small" disabled={buttondisabled}></lightning-button>
 				<lightning-button variant="brand-outline" label="Reset" title="Reset" onclick={handleReset}
 					class="slds-m-left_x-small" disabled={buttondisabled}></lightning-button>
 				<lightning-button variant="brand" label={buttonLabel} title={buttonLabel} onclick={checkMatch}
@@ -57,19 +61,11 @@
 							value={STATEMENTTypeFilter} onchange={handleSTATEMENTInputChange} name="TypeFilter">
 						</lightning-input>
 					</div>
-					<!-- [CM5] moved this to the bottom.-->
-					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
-						<lightning-combobox name="STATEMENTmatchStatus" label="Matched Status" value={STATEMENTmatchStatus}
-							options={STATEMENTmatchStatusOptions} class="searchInput slds-p-around_xx-small"
-							onchange={handleSTATEMENTMatchStatusChange}></lightning-combobox>
-					</div>
-	<!--
 					<div class="slds-col slds-size_1-of-6 slds-align_absolute-center">
 						<lightning-input type="currency" label="Amount" class="searchInput slds-p-around_xx-small"
 							value={STATEMENTAmountFilter} onchange={handleSTATEMENTInputChange} name="AmountFilter">
 						</lightning-input>					
 					</div>
-	-->				
 				</div>
 			</div>			
 			<div class="slds-card__body slds-card__body_inner slds-border_top">
@@ -106,7 +102,7 @@
 				<template if:true={showStatement}>
 					<template if:true={STATEMENThasRows}>
 						<lightning-datatable key-field="id" data-table="STATEMENT" data={STATEMENTrecordData}
-							columns={STATEMENTcolumns} onrowselection={STATEMENThandleRowSelection}></lightning-datatable>
+							onsort={handleBankSort} columns={STATEMENTcolumns} onrowselection={STATEMENThandleRowSelection}></lightning-datatable>
 					</template>
 				</template>
 				<div class="showSpinner" if:true={STATEMENTloading}>
@@ -196,11 +192,9 @@
 
 				<template if:true={LEDGERhasRows}>
 					<lightning-datatable key-field="id" data-table="LEDGER" data={LEDGERrecordData} columns={LEDGERcolumns}
-						onrowselection={LEDGERhandleRowSelection}></lightning-datatable>
+						onsort={handleLedgerSort} onrowselection={LEDGERhandleRowSelection}></lightning-datatable>
 				</template>
 			</div>
-
-		 
 
 	</article>
 
@@ -222,13 +216,10 @@
 				<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
 					<div class="slds-text-heading_medium">Transactions do not match</div>
 					<p>Click the <strong>Cancel</strong> to go back.</p>
-					<p>Click the <strong>Match</strong> button to perform a partial match.</p>
 				</div>
 				<footer class="slds-modal__footer">
 					<lightning-button variant="brand-outline" label="Cancel" title="Cancel" onclick={hideModal}>
 					</lightning-button>
-					<lightning-button variant="brand" label="Match" title="Match" onclick={handleMatch}
-						class="slds-m-left_x-small"></lightning-button>
 				</footer>
 			</div>
 		</section>

@@ -7,6 +7,14 @@ public class FfaDataProviderTest {
         System.assertNotEquals(null,someId);
     }
     
+	static testMethod void testCheckGlaCode() {
+        FfaDataProvider provider = FfaDataProvider.getInstance();
+        boolean positiveResult = provider.checkGlaCode('7020');
+        boolean negativeResult = provider.checkGlaCode('5555');
+        Assert.isTrue(positiveResult);
+        Assert.isFalse(negativeResult);
+    }    
+    
 	static testMethod void testGetDimension1() {
         FfaDataProvider provider = FfaDataProvider.getInstance();
         Id someId = provider.getDimension1('100');
@@ -18,6 +26,14 @@ public class FfaDataProviderTest {
         c2g__codaDimension1__c someDim1 = provider.getFullDimension1('100');
         System.assertNotEquals(null,someDim1);
     }    
+    
+	static testMethod void testCheckDimension1() {
+        FfaDataProvider provider = FfaDataProvider.getInstance();
+        boolean positiveResult = provider.checkDimension1('112');
+        boolean negativeResult = provider.checkDimension1('aaa');
+        Assert.isTrue(positiveResult);
+        Assert.isFalse(negativeResult);
+    }        
     
 	static testMethod void testGetDimension2() {
         FfaDataProvider provider = FfaDataProvider.getInstance();
@@ -31,6 +47,14 @@ public class FfaDataProviderTest {
         System.assertNotEquals(null,someDim2);
     }
     
+	static testMethod void testCheckDimension2() {
+        FfaDataProvider provider = FfaDataProvider.getInstance();
+        boolean positiveResult = provider.checkDimension2('359');
+        boolean negativeResult = provider.checkDimension2('bbb');
+        Assert.isTrue(positiveResult);
+        Assert.isFalse(negativeResult);
+    }       
+    
 	static testMethod void testGetDimension3() {
         FfaDataProvider provider = FfaDataProvider.getInstance();
         Id someId = provider.getDimension3('000');
@@ -42,6 +66,14 @@ public class FfaDataProviderTest {
         c2g__codaDimension3__c someDim3 = provider.getFullDimension3('000');
         System.assertNotEquals(null,someDim3);
     }    
+    
+	static testMethod void testCheckDimension3() {
+        FfaDataProvider provider = FfaDataProvider.getInstance();
+        boolean positiveResult = provider.checkDimension3('000');
+        boolean negativeResult = provider.checkDimension3('ccc');
+        Assert.isTrue(positiveResult);
+        Assert.isFalse(negativeResult);
+    }         
     
 	static testMethod void testGetDimension4() {
         FfaDataProvider provider = FfaDataProvider.getInstance();
@@ -55,18 +87,19 @@ public class FfaDataProviderTest {
         System.assertNotEquals(null,someDim4);
     }
     
+	static testMethod void testCheckDimension4() {
+        FfaDataProvider provider = FfaDataProvider.getInstance();
+        boolean positiveResult = provider.checkDimension4('00');
+        boolean negativeResult = provider.checkDimension4('dd');
+        Assert.isTrue(positiveResult);
+        Assert.isFalse(negativeResult);
+    }             
+    
     static testMethod void testGetVendor() {
         FfaDataProvider provider = FfaDataProvider.getInstance();
         Account someAccount = provider.getVendor('1800');
         System.assertEquals(someAccount.Name,'1800ADMIN, LLC');
     }
-    
-    /**
-    static testMethod void testGetBankAccount() {
-        FfaDataProvider provider = FfaDataProvider.getInstance();
-        Id someId = provider.getBankAccount('1015');    
-        System.assertNotEquals(null,someId); 
-    }*/
     
     static testMethod void testGetCompany() {
         FfaDataProvider provider = FfaDataProvider.getInstance();

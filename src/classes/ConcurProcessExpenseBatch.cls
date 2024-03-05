@@ -12,7 +12,8 @@ global class ConcurProcessExpenseBatch implements Database.Batchable<sObject> {
         String type = 'Expense';
         String query = 'SELECT Id, Invoice_Number__c, Vendor_ID__c, Intercompany_ID__c, Transaction_Amount__c, ' + 
             'Apply_Date__c, Description_1__c, Submitter__c, Company_ID__c, Payment_Type__c, Other_Payment_Type__c, ' + 
-            'Account_Code__c, Department__c, Program__c, Project__c, Other__c, Processed__c, Concur_Key__c, Concur_ID__c ' + 
+            'Account_Code__c, Department__c, Program__c, Project__c, Other__c, Processed__c, Concur_Key__c, Concur_ID__c, ' + 
+            'Concur_Batch__r.Batch_ID__c ' + 
             'FROM Payment_Shuttle__c ' + 
             'WHERE Processed__c = false AND Failed__c = false AND Type__c = :type ' + 
             'AND Company_ID__c = :company AND Concur_Batch__c = :batchId';
@@ -65,6 +66,7 @@ global class ConcurProcessExpenseBatch implements Database.Batchable<sObject> {
                 newPin.Concur_ID__c = someShuttle.Concur_ID__c;
                 newPin.Source__c = 'Concur';
                 newPin.Type__c = 'Expense';
+                newPin.Batch__c = someShuttle.Concur_Batch__r.Batch_ID__c;                
                 somePins.add(newPin);
                 pinMap.put(someShuttle.Vendor_ID__c + '-' + someShuttle.Concur_Key__c + '-' + someShuttle.Apply_Date__c, newPin);
             }

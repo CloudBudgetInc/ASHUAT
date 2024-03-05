@@ -1,28 +1,33 @@
 trigger BankStatementTrigger on Bank_Statement__c (after update) {
     
+    private static final String TEN_NINETEEN_REPORTING_CODE = '1019';
+    private static final String TEN_SIXTEEN_REPORTING_CODE = '1016-ACH';
+    private static final String RECEIVER_LINE = '88,RCVR';
+    
     if ( Trigger.isAfter && trigger.isUpdate ) 
     {
-        // Sets up a look of BAI type code matched to BAI type description.
+        // Sets up a lookup/map of BAI type code matched to BAI type description.
         Map<String, BAITransactionType__c> transactionTypeLookup = new Map<String, BAITransactionType__c>();
         Map<Id, BAITransactionType__c> someTransactionTypes = 
             new Map<Id, BAITransactionType__c>([SELECT Id, Code__c, Type__c from BAITransactionType__c]);
-		for( Id someId : someTransactionTypes.keySet() ) {
-    		BAITransactionType__c transactionType = someTransactionTypes.get(someId);
-            String code = transactionType.Code__c;
-		    transactionTypeLookup.put(code, transactionType);
-		}
+        for( Id someId : someTransactionTypes.keySet() ) {
+            BAITransactionType__c transactionType = someTransactionTypes.get(someId);
+                String code = transactionType.Code__c;
+            transactionTypeLookup.put(code, transactionType);
+        }
         
         for(Bank_Statement__c statement : trigger.new) {
-
-            if( statement.Process_File__c == true && 
-				Trigger.oldMap.get(statement.Id).Process_File__c != statement.Process_File__c ) {
-					if(statement.Format__c == 'BAI') { 
-						importBAIFormattedFile(statement, transactionTypeLookup);
-                    } else
-                    {
-                        importCVSFormattedFile(statement);
-                    }
-            	}
+            List<Bank_Statement_Line_Item__c> previouslyInsertedItems = [SELECT Id FROM Bank_Statement_Line_Item__c
+				WHERE Bank_Statement__c = :statement.Id];
+            if(previouslyInsertedItems.size() == 0 ) {
+                if( statement.Process_File__c == true && 
+                    Trigger.oldMap.get(statement.Id).Process_File__c != statement.Process_File__c ) {
+                        importBAIFormattedFile(statement, transactionTypeLookup);
+                }
+            }
+            else {
+                System.debug('Previously inserted bank statement lines found. Cancelling import operation.');
+            }
         }
     }
     
@@ -36,21 +41,23 @@ trigger BankStatementTrigger on Bank_Statement__c (after update) {
         Id contentDocumentId = cdl.ContentDocumentId;
         ContentVersion someCv = [SELECT FileExtension, Title, versiondata FROM ContentVersion 
                                  WHERE ContentDocumentId = :contentDocumentId and IsLatest=true];
-        Blob csvFileBody = someCv.VersionData;
-        String csvAsString = csvFileBody.toString();
-        List<String> csvFileLines = csvAsString.split('\n');
-        
-        // Grab the header lines, then remove them (for now)
-        //csvFileLines.remove(0);
-        //csvFileLines.remove(1);
-        //csvFileLines.remove(3);
-        
-        String bankAccountNumber = statement.Bank_Account_Number__c;
+        Blob baiFileBody = someCv.VersionData;
+        String baiAsString = baiFileBody.toString();
+        List<String> baiFileLines = baiAsString.split('\n');
+
+        // Grab the bank account number we'll be searching for in the BAI file via a lookup to the Bank Account.
+        c2g__codaBankAccount__c bankAccount = [SELECT Id, c2g__AccountNumber__c, c2g__ReportingCode__c 
+                                               FROM c2g__codaBankAccount__c 
+                               WHERE Id = :statement.Bank_Account__c];
+        String bankAccountNumber = bankAccount.c2g__AccountNumber__c;
+        String reportingCode = bankAccount.c2g__ReportingCode__c;
         List<Bank_Statement_Line_Item__c> linesForInsert = new List<Bank_Statement_Line_Item__c>();                 
         
         boolean process = false;
         String transactionDate = '';
-        for(String line : csvFileLines) {
+        boolean eightyEightLineAlreadyProcessed = false;
+        boolean sixteenLinesBegun = false;
+        for(String line : baiFileLines) {
             // File is grouped by date using the 02 record.
             if(line.startsWith('02')) {
                 List<String> moreSplits = line.split(',');
@@ -70,11 +77,12 @@ trigger BankStatementTrigger on Bank_Statement__c (after update) {
             // 16 is a data transaction; we load these up for matching purposes.
             // Here we're finally doing "the work" of this trigger.
             if(line.startsWith('16') && process == true) { 
+                eightyEightLineAlreadyProcessed = false;
                 List<String> moreSplits = line.split(',');
                 Bank_Statement_Line_Item__c newLine = new Bank_Statement_Line_Item__c();
+                newLine.General_Ledger_Account__c = statement.General_Ledger_Account__c;
                 String code = moreSplits[1];
-                // If we don't have a lookup value for the BAI type, we still process it - 
-                // we just set it as 'unknown'.
+                // If we don't have a lookup value for the BAI type, we still process it as 'unknown'.
                 BAITransactionType__c typeLookup = transactionTypeLookup.get(code);
                 if(typeLookup == null) {
                     typeLookup = transactionTypeLookup.get('999');
@@ -101,67 +109,35 @@ trigger BankStatementTrigger on Bank_Statement__c (after update) {
                     Date.newInstance(Integer.valueOf('20' + transactionDate.left(2)), 
                                      Integer.valueOf(transactionDate.mid(2,2)), 
                                      Integer.valueOf(transactionDate.right(2)));
+                
                 linesForInsert.add(newLine);
+                sixteenLinesBegun = true;
             }
-        }
-        insert linesForInsert;
-    }
-    
-    private void importCVSFormattedFile(Bank_Statement__c statement) {
-        
-        // fetch the CSV attached to the Bank Statement.
-        Id someId = statement.Id;
-        List<ContentDocumentLink> someList = [SELECT Id, LinkedEntityId, ContentDocumentId
-                                              FROM ContentDocumentLink WHERE LinkedEntityId = :someId];  
-        ContentDocumentLink cdl = someList.get(0);
-        Id contentDocumentId = cdl.ContentDocumentId;
-        ContentVersion someCv = [SELECT FileExtension, Title, versiondata FROM ContentVersion 
-                                 WHERE ContentDocumentId = :contentDocumentId and IsLatest=true];
-        Blob csvFileBody = someCv.VersionData;
-        String csvAsString = csvFileBody.toString();
-        List<String> csvFileLines = csvAsString.split('\n');
-        
-        // Grab the header line, then remove it so it is gone when we iterate thru the journal lines.
-        String headerLine = csvFileLines.get(0);
-        List<String> headerSplits = headerLine.split(',');
-        csvFileLines.remove(0);      
-
-        List<Bank_Statement_Line_Item__c> linesForInsert = new List<Bank_Statement_Line_Item__c>();         
-        for( String line : csvFileLines ) {
-            Bank_Statement_Line_Item__c newLine = new Bank_Statement_Line_Item__c(); 
-            newLine.Bank_Statement__c = statement.Id;
-            List<String> moreSplits = line.split(',');
-            
-            Integer i = 0;
-            for( String more : moreSplits) {   
-                //System.debug(more);
-                String sign;
-                if(i == 0) { 
-                	newLine.Transaction_Date__c = Date.parse(more);
+            // If the next line is an 88 (not all lines have 88 records), grab the relevant 
+            // addenda and add it. This is only relevent for incoming checks (debits); we don't want to 
+            // overwrite the check number previously stored for outgoing checks, code 475 (credits). 
+            // The purpose of this line is to grab the payer from the BAI file. Note that we only want to grab the 
+            // first 88 line, and likewise, we only want to use 88 lines that come after a 16 line (they don't always).
+            if(line.startsWith('88') && process == true && !eightyEightLineAlreadyProcessed && 
+               sixteenLinesBegun && reportingCode == TEN_NINETEEN_REPORTING_CODE) {            
+                  List<String> moreSplits = line.split(',');
+                  Bank_Statement_Line_Item__c lastLine = linesForInsert.get(linesForInsert.size()-1);
+                  if(lastLine.Code__c != '475') { 
+                    String payer = moreSplits[1];
+                    lastLine.Addenda_1__c = payer.left(50);
+                  }
+                  eightyEightLineAlreadyProcessed = true;
+            }
+            // Special handling for newly added lines from Truist that include the receiver. Only relevant for the 
+            // 1016 account and for International Wires.
+            if(line.startsWith(RECEIVER_LINE) && process == true && sixteenLinesBegun && reportingCode == TEN_SIXTEEN_REPORTING_CODE) {           
+                List<String> moreSplits = line.split(',');
+                Bank_Statement_Line_Item__c lastLine = linesForInsert.get(linesForInsert.size()-1);
+                if(lastLine.Code__c == '508') { 
+                    String receiverLineData = moreSplits[1];
+                    lastLine.Reference__c = receiverLineData.substringAfter(' ').left(50);
                 }
-                if(i == 2) { 
-                    if(more != null && more != '') { 
-                        newLine.Amount__c = (Decimal.valueOf(more) * -1);
-                        newLine.Sign__c = 'Debit';
-                    }
-                }
-                if(i == 3) { 
-                    //System.debug(more);
-                    if(more != null && more != '') {
-                        newLine.Amount__c = Decimal.valueOf(more);
-                        newLine.Sign__c = 'Credit';
-                    }
-                }
-                if(i == 4) {
-                    // Type. Need to figure out what to do here as the Atlantic Union list doesn't 
-                    // cleanly align with the Truist list which is driven off a more traditional BAI standard.
-                }     
-                if(i == 5) {
-                    newLine.Reference__c = more.left(50);
-                }
-                i++;
-        	}
-            linesForInsert.add(newLine);
+            }
         }
         insert linesForInsert;
     }

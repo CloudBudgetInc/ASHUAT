@@ -1,0 +1,20 @@
+<apex:page controller="TransactionDetailsController" showHeader="true" standardStylesheets="true" sidebar="true">
+    <apex:form >
+        <apex:pageBlock title="Transactions (Total Rows: {!totalSize})">
+            <apex:pageBlockTable value="{!transactionItems}" var="item">
+                <apex:column headerValue="Transaction Date" value="{!item.c2g__TransactionDate__c}"/>    
+                <apex:column headerValue="Period" value="{!item.c2g__Transaction__r.c2g__Period__r.Name}"/>         
+                <apex:column headerValue="General Ledger Account" value="{!item.c2g__GeneralLedgerAccount__r.Name}"/>   
+                <apex:column headerValue="Account-Subaccount" value="{!item.Account_Subaccount__c}"/>                                         
+                <apex:column headerValue="Description" value="{!item.c2g__LineDescription__c}"/>
+                <apex:column headerValue="Document Number" value="{!item.c2g__DocumentNumber__c}"/>
+                <apex:column headerValue="Amount" value="{!item.c2g__HomeValue__c}"/>         
+            </apex:pageBlockTable>
+            <apex:panelGrid columns="3">
+                <apex:commandButton value="Previous" action="{!previousPage}" rendered="{!prevAvailable}" />
+                <apex:outputText >Page {!pageNumber} of {!totalPages}</apex:outputText>
+                <apex:commandButton value="Next" action="{!nextPage}" rendered="{!nextAvailable}" />
+            </apex:panelGrid>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

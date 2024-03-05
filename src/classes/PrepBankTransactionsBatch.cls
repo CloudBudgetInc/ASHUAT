@@ -16,7 +16,7 @@ global class PrepBankTransactionsBatch implements Database.Batchable<sObject> {
         
         String query = 'SELECT Id, c2g__Account__r.Name, c2g__TransactionDate__c,  c2g__Transaction__r.c2g__TransactionType__c, ' + 
             'c2g__Transaction__r.c2g__CashEntry__r.c2g__PaymentMethod__c, c2g__LineDescription__c, ' + 
-            'c2g__Transaction__r.c2g__Journal__r.Name, ' +
+            'c2g__Transaction__r.c2g__Journal__r.Name, c2g__Transaction__r.c2g__Journal__r.Personify_Journal__c, ' +
             'c2g__Transaction__r.c2g__CashEntry__r.c2g__Reference__c, ' + 
             'c2g__Transaction__r.c2g__CashEntry__r.c2g__PaymentNumber__r.Name, ' + 
             'c2g__Transaction__r.c2g__CashEntry__r.c2g__BankAccount__r.c2g__ReportingCode__c, c2g__HomeValue__c ' + 
@@ -53,16 +53,20 @@ global class PrepBankTransactionsBatch implements Database.Batchable<sObject> {
             	forInsert.add(newBankTransaction);
 			}
             else { // Journal
-      	   		Bank_Transaction__c newBankTransaction = new Bank_Transaction__c(
-                    Account__c = someItem.c2g__LineDescription__c, 
-					Amount__c = someItem.c2g__HomeValue__c, 
-                    General_Ledger_Account__c = generalLedgerId, 
-					Period__c = periodId, 
-                    Reference__c = someItem.c2g__Transaction__r.c2g__Journal__r.Name,
-                    Transaction__c = someItem.c2g__Transaction__c,
-                    Transaction_Type__c = 'Journal',
-                    Transaction_Date__c = someItem.c2g__TransactionDate__c);
-            	forInsert.add(newBankTransaction);            
+                // We need to eliminate Personify journals here, as the data needs to imported 
+                // separately for adequate coverage on the reconciliations. 
+                if(!someItem.c2g__Transaction__r.c2g__Journal__r.Personify_Journal__c) {
+                    Bank_Transaction__c newBankTransaction = new Bank_Transaction__c(
+                        Account__c = someItem.c2g__LineDescription__c, 
+                        Amount__c = someItem.c2g__HomeValue__c, 
+                        General_Ledger_Account__c = generalLedgerId, 
+                        Period__c = periodId, 
+                        Reference__c = someItem.c2g__Transaction__r.c2g__Journal__r.Name,
+                        Transaction__c = someItem.c2g__Transaction__c,
+                        Transaction_Type__c = 'Journal',
+                        Transaction_Date__c = someItem.c2g__TransactionDate__c);
+                    forInsert.add(newBankTransaction);   
+                }
             }
         }
         insert forInsert;

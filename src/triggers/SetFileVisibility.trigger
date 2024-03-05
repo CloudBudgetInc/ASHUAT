@@ -4,8 +4,8 @@ trigger SetFileVisibility on ContentDocumentLink (before insert) {
      for (ContentDocumentLink cdl : Trigger.new) {
           if (cdl.LinkedEntityId.getSObjectType().getDescribe().getName() == 'Contact') {
               String linkId = cdl.LinkedEntityId;
-			  User c = [SELECT Id FROM User WHERE ContactId = :linkId];
-              if (c != null){
+              List<User> cList = [SELECT Id FROM User WHERE ContactId = :linkId];
+              if (cList.size() > 0){
                   cdl.visibility = 'AllUsers';
               }
           }

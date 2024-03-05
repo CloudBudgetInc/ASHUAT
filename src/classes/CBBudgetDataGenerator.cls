@@ -962,5 +962,5 @@ public with sharing class CBBudgetDataGenerator implements Database.Batchable<SO
 		i++;
 		i++;
 	}
-	
+
 }

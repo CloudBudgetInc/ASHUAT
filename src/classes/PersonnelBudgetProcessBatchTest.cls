@@ -41,7 +41,7 @@ public class PersonnelBudgetProcessBatchTest {
         insert someCostRecord;
         
         Test.startTest();
-        PersonnelBudgetProcessBatch pbpb = new PersonnelBudgetProcessBatch(someBatch.Id);
+        PersonnelBudgetProcessBatch pbpb = new PersonnelBudgetProcessBatch(someBatch.Id, 'ASH');
         Id jobid = Database.executeBatch(pbpb, 1);
         Test.stopTest();        
         

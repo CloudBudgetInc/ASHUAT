@@ -191,30 +191,30 @@
 									</div>
 								</aura:if>
 								<aura:if isTrue="{!r.type != 'groupTotal'}">
-								<div class="slds-size_1-of-2 slds-truncate dimStyle">
-									<div class="subtypeInAccName">
-										{!v.selectedGroup == 'accName' ? (r.accountST == null ? '' : 'SubType: ' +
-										r.accountST) : '' }
+									<div class="slds-size_1-of-2 slds-truncate dimStyle">
+										<div class="subtypeInAccName">
+											{!v.selectedGroup == 'accName' ? (r.accountST == null ? '' : 'SubType: ' +
+											r.accountST) : '' }
+										</div>
+										<div>
+											{!r.accName}
+										</div>
+										<div>
+											{!r.dim6Name}
+										</div>
+										<div>
+											{!r.dim7Name}
+										</div>
+										<div>
+											{!r.dim8Name}
+										</div>
+										<div>
+											{!r.dim9Name}
+										</div>
+										<div>
+											{!r.dim10Name}
+										</div>
 									</div>
-									<div>
-										{!r.accName}
-									</div>
-									<div>
-										{!r.dim6Name}
-									</div>
-									<div>
-										{!r.dim7Name}
-									</div>
-									<div>
-										{!r.dim8Name}
-									</div>
-									<div>
-										{!r.dim9Name}
-									</div>
-									<div>
-										{!r.dim10Name}
-									</div>
-								</div>
 
 									<div class="slds-size_1-of-2 slds-p-left_small titleStyle">
 										<div style="color: black !important; font-size: small !important;">{!r.description}</div>
@@ -267,33 +267,33 @@
 									</div>
 								</aura:if>
 								<aura:if isTrue="{!r.type != 'groupTotal'}">
-								<div class="slds-size_1-of-2 slds-truncate dimStyle">
-									<div class="subtypeInAccName">
-										{!v.selectedGroup == 'accName' ? (r.accountST == null ? '' : 'SubType: ' +
-										r.accountST) : '' }
+									<div class="slds-size_1-of-2 slds-truncate dimStyle">
+										<div class="subtypeInAccName">
+											{!v.selectedGroup == 'accName' ? (r.accountST == null ? '' : 'SubType: ' +
+											r.accountST) : '' }
+										</div>
+										<div>
+											{!r.accName}
+										</div>
+										<div>
+											{!r.dim6Name}
+										</div>
+										<div>
+											{!r.dim7Name}
+										</div>
+										<div>
+											{!r.dim8Name}
+										</div>
+										<div>
+											{!r.dim9Name}
+										</div>
+										<div>
+											{!r.dim10Name}
+										</div>
 									</div>
-									<div>
-										{!r.accName}
-									</div>
-									<div>
-										{!r.dim6Name}
-									</div>
-									<div>
-										{!r.dim7Name}
-									</div>
-									<div>
-										{!r.dim8Name}
-									</div>
-									<div>
-										{!r.dim9Name}
-									</div>
-									<div>
-										{!r.dim10Name}
-									</div>
-								</div>
 
 									<div class="slds-size_1-of-2 slds-p-left_small titleStyle">
-											<div class="dimStyle" style="color: black !important; font-size: small !important;">{!r.description}</div>
+										<div class="dimStyle" style="color: black !important; font-size: small !important;">{!r.description}</div>
 									</div>
 								</aura:if>
 							</div>

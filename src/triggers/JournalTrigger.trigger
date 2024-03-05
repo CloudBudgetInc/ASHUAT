@@ -1,25 +1,19 @@
 trigger JournalTrigger on c2g__codaJournal__c (after update) {
 
     if( Trigger.isAfter && trigger.isUpdate ) {
-        /**
-        // Auto-post when approved. Currently disabled.
-        List<c2g.CODAAPICommon.Reference> refs = new List<c2g.CODAAPICommon.Reference>();
-        */
+
         List<c2g__codaJournalLineItem__c> journalLines = 
-            [SELECT c2g__LineType__c, c2g__GeneralLedgerAccount__c, c2g__Dimension1__c, c2g__Dimension2__c, 
-             c2g__Dimension3__c, c2g__Dimension4__c, c2g__OwnerCompany__c, c2g__DestinationCompany__c 
+            [SELECT c2g__GeneralLedgerAccount__c, c2g__Dimension1__c, c2g__Dimension2__c, 
+             c2g__Dimension3__c, c2g__Dimension4__c, c2g__LineType__c, c2g__OwnerCompany__c, c2g__DestinationCompany__c 
              FROM c2g__codaJournalLineItem__c 
              WHERE c2g__Journal__c IN :trigger.new];
         List<c2g__codaJournalLineItem__c> forUpdate = new List<c2g__codaJournalLineItem__c>();
         
+        /** Allows the user to force pro-active validation on a journal's line against the list of 
+         * active Combination Rules. We cannot wait for post-time to determine if a line is valid.
+         */
         for(c2g__codaJournal__c journal : trigger.new)
         {
-            /**
-            if(Trigger.oldMap.get(journal.Id).Approval_Status__c  != journal.Approval_Status__c ) {
-            if( journal.Approval_Status__c == 'Approved') {
-            c2g.CODAAPICommon.Reference ref = c2g.CODAAPICommon.getRef(journal.Id, null);
-            refs.add(ref);
-			}} */
             if((Trigger.oldMap.get(journal.Id).Validate_Journal__c  != journal.Validate_Journal__c) && 
                journal.Validate_Journal__c == true) {
                    
@@ -45,7 +39,7 @@ trigger JournalTrigger on c2g__codaJournal__c (after update) {
                            someLine.Invalid__c = true; 
                            someLine.Validation_Timestamp__c = System.now();
                        } else {
-                           // This code is necessary to 'reset' line items that were previously bad, but are now fixed.
+                           // Necessary to 'reset' line items that were previously bad, but are now fixed.
                            someLine.Invalid__c = false;
                            someLine.Validation_Timestamp__c = System.now();
                        } 
@@ -53,7 +47,6 @@ trigger JournalTrigger on c2g__codaJournal__c (after update) {
                    }                        
                }
         }
-        //c2g.CODAAPIJournal_12_0.BulkPostJournal(null, refs);
         update forUpdate;
     }
 }

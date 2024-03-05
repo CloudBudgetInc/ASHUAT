@@ -232,7 +232,7 @@
 								</div>
 								<div class="{!if(and(v.mode == 'single', v.app.cb4__Text4__c != null), 'slds-text-body_small description', 'slds-hide')}"
 									 style="min-width: 250px; max-width: 400px;">
-									Approved by : {!v.app.cb4__Text4__c}
+									Last Approved/Rejected by : {!v.app.cb4__Text4__c}
 								</div>
 								<div class="{!if(and(v.mode == 'single', v.app.HasAccessToChangeStatus__c != null), 'slds-text-body_small description', 'slds-hide')}"
 									 style="min-width: 250px; max-width: 400px;">
@@ -326,12 +326,12 @@
 					</div>
 					<div>
 						<lightning:buttonGroup>
-							<lightning:buttonIcon iconName="utility:refresh" variant="brand"
+							<!--<lightning:buttonIcon iconName="utility:refresh" variant="brand"
 												  class="slds-m-top_large slds-button_success" alternativeText="Refresh Structure"
-												  title="Refresh App Table" onclick="{!c.updateApp}" />
-							<lightning:button label="Resummarize" onclick="{!c.recalculateAllApps}" disabled="{!v.selectedStatus != ''}"
-											  title="Recalculate all App totals and dependencies"
-											  class="slds-m-top_large slds-button_destructive" />
+												  title="Refresh App Table" onclick="{!c.updateApp}" />-->
+							<lightning:button label="Refresh" onclick="{!c.recalculateAllApps}" disabled="{!v.selectedStatus != ''}"
+											  title="Recalculate all App totals and dependencies" variant="brand"
+											  class="slds-m-top_large" />
 							<div class="{!if(v.adminAccess, '','slds-hide')}">
 								<lightning:button label="Create Template" onclick="{!c.createApp}"
 												  title="Create New Budget Template" class="slds-m-top_large" />
@@ -495,7 +495,7 @@
 													<lightning:layoutItem>
 														<div
 																class=" slds-m-left_large slds-m-right_medium slds-m-top_medium slds-align-bottom">
-															<lightning:input type="toggle" label="Show more"
+															<lightning:input type="toggle" label="Show Details"
 																			 name="input1" class="inputModeToggle"
 																			 messageToggleActive="On" messageToggleInactive="Off"
 																			 onchange="{!c.turnDetailMode}" />
@@ -1277,15 +1277,15 @@
 						<div style="overflow-y: auto;max-height: 480px;">
 							<table class="slds-table slds-table_bordered">
 								<thead style="position: sticky; top: 0; z-index: 1;">
-									<th>#</th>
-									<th>Info</th>
-									<th>Log Name</th>
-									<th>Description</th>
-									<th>Account-Subaccount</th>
-									<aura:iteration items="{!v.headers}" var="h">
-										<th class="slds-text-align_right">{!h}</th>
-									</aura:iteration>
-									<th class="slds-text-align_right">Total</th>
+								<th>#</th>
+								<th>Info</th>
+								<th>Log Name</th>
+								<th>Description</th>
+								<th>Account-Subaccount</th>
+								<aura:iteration items="{!v.headers}" var="h">
+									<th class="slds-text-align_right">{!h}</th>
+								</aura:iteration>
+								<th class="slds-text-align_right">Total</th>
 								</thead>
 								<tbody>
 								<aura:iteration items="{!v.historyList}" var="hitem" indexVar="i">
@@ -1296,7 +1296,7 @@
 										<td>{!hitem.description}</td>
 										<td>{!hitem.scode}</td>
 										<aura:iteration items="{!hitem.rowValues}" var="hi">
-										<td class="slds-text-align_right"><p>$ <lightning:formattedNumber value="{!hi.v}" minimumFractionDigits="2" maximumFractionDigits="2"/></p></td>
+											<td class="slds-text-align_right"><p>$ <lightning:formattedNumber value="{!hi.v}" minimumFractionDigits="2" maximumFractionDigits="2"/></p></td>
 										</aura:iteration>
 									</tr>
 								</aura:iteration>
@@ -1341,7 +1341,7 @@
 			 aria-describedby="modal-content-id-2" class="slds-modal slds-fade-in-open slds-modal_small slds-hide">
 		<div class="slds-modal__container">
 			<header class="slds-modal__header">
-				<h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Approval Message</h2>
+				<h2 id="modal-heading-02" class="slds-modal__title slds-hyphenate">Add Message</h2>
 			</header>
 			<div class="slds-modal__content slds-p-around_medium slds-grid_vertical" id="modal-content-id-1">
 				<div class="{!if(or(v.rejectBtnPressed, v.app.NextStatus__c == 'Approve (Final)'), 'slds-hide', '')}">
@@ -1353,7 +1353,7 @@
 					</lightning:select>
 				</div>
 				<div>
-					<lightning:textarea maxlength="250" label="Approval Message" variant="label-hidden" placeholder="{!if(v.rejectBtnPressed, 'This message will be emailed to the Budget Owner(s).', 'This message will be emailed to the next approver.')}" value="{!v.approveComment}"/>
+					<lightning:textarea maxlength="250" label="Add Message" variant="label-hidden" placeholder="{!if(v.rejectBtnPressed, 'This message will be emailed to the Budget Owner(s).', 'This message will be emailed to the next approver.')}" value="{!v.approveComment}"/>
 				</div>
 			</div>
 			<footer class="slds-modal__footer">
@@ -1470,12 +1470,12 @@
 					</lightning:layoutItem>
 
 					<lightning:layoutItem size="{!if(v.adminAccess, 4, 12)}" padding="around-small">
-						<div class="{!if(v.adminAccess, 'slds-m-around_none', 'slds-hide')}">
+						<!--<div class="{!if(v.adminAccess, 'slds-m-around_none', 'slds-hide')}">
 							<lightning:textarea disabled="{!!v.adminAccess}" onchange="{!c.lockSublineDeletion}"
 												accesskey="description" maxlength="250"
 												messageWhenTooLong="You cannot use more than 250 characters" placeholder="Description"
 												label="Description" value="{!v.row.description}" />
-						</div>
+						</div>-->
 						<div class="{!if(v.adminAccess, 'slds-m-around_none', 'slds-m-around_none slds-size_11-of-12')}">
 							<lightning:textarea disabled="{!or(v.localEditDisabled, and(!v.adminAccess, v.editDisabled))}" maxlength="250" class="{!if(v.adminAccess, '', 'textAreaHeight')}"
 												messageWhenTooLong="You cannot use more than 250 characters" placeholder="Comment Text"

@@ -1,9 +1,11 @@
 global class PersonnelBudgetProcessBatch implements Database.Batchable<sObject> {
     
     String batchId;
+    String company;
     
-    public PersonnelBudgetProcessBatch(String batchId) {
+    public PersonnelBudgetProcessBatch(String batchId, String company) {
         this.batchId = batchId;
+        this.company = company;
     }
 
     global Database.QueryLocator start(Database.BatchableContext BC) { 
@@ -81,6 +83,7 @@ global class PersonnelBudgetProcessBatch implements Database.Batchable<sObject> 
             if(stager == null) {   
                 stager = new Personnel_Budget_Stager__c();
                 stager.Period__c = period;
+                stager.Company__c = company;
                 stager.Accounting_Company__c = someCostRecord.Budget_Position__r.Accounting_Company__c;
                 stager.Quarter__c = getQuarter(period);
                 stager.Program__c = someCostRecord.Budget_Position__r.Program__r.c2g__ReportingCode__c;
@@ -104,13 +107,22 @@ global class PersonnelBudgetProcessBatch implements Database.Batchable<sObject> 
     }
     
     private static String getQuarter(String period) {
-        switch on period {
-            when '202401', '202402', '202403' { return 'Q1'; }
-            when '202404', '202405', '202406' { return 'Q2'; }
-	        when '202407', '202408', '202409' { return 'Q3'; }
-            when '202410', '202411', '202412' { return 'Q4'; }
+        if(period.right(2) == '01' || period.right(2) == '02' || period.right(2) == '03') {
+            return 'Q1';  
+        } 
+        else if
+        (period.right(2) == '04' || period.right(2) == '05' || period.right(2) == '06') {
+            return 'Q2';              
         }
-        return '00';
+        else if
+        (period.right(2) == '07' || period.right(2) == '08' || period.right(2) == '09') {
+            return 'Q3';          
+        }
+        else if
+        (period.right(2) == '10' || period.right(2) == '11' || period.right(2) == '12') {
+            return 'Q4';          
+        }     
+        else return '00';
     }
 
     global void finish(Database.BatchableContext bc) { }

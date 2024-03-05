@@ -10,10 +10,9 @@ global class MonthlyCloseChecklistBatch implements Database.Batchable<sObject> {
     
     global Database.QueryLocator start(Database.BatchableContext BC) { 
         
-        String query = 'SELECT Id, Assignee__c, Item__c FROM Monthly_Close_Task_Template__c ORDER BY Name';
+        String query = 'SELECT Id, Assignee__c, Item__c FROM Monthly_Close_Task_Template__c ORDER BY Order__c';
         return Database.getQueryLocator(query);
     }
-
     
     global void execute(Database.BatchableContext BC, List<Monthly_Close_Task_Template__c> templates) { 
 		

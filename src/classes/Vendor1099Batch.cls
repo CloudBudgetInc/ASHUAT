@@ -5,20 +5,23 @@ global class Vendor1099Batch implements Database.Batchable<sObject> {
     Date endDate;
     String vendorId = '';
     String company = 'ASH';
+    Boolean isTest = false;
     
-    public Vendor1099Batch(String taxYear, Date startDate, Date endDate, String company) {
+    public Vendor1099Batch(String taxYear, Date startDate, Date endDate, String company, String isTest) {
         this.taxYear = taxYear;
         this.startDate = startDate;
         this.endDate = endDate;
         this.company = company;
+        this.isTest = Boolean.valueOf(isTest);        
     }    
     
-    public Vendor1099Batch(String taxYear, Date startDate, Date endDate, String company, String vendorId) {
+    public Vendor1099Batch(String taxYear, Date startDate, Date endDate, String company, String vendorId, String isTest) {
         this.taxYear = taxYear;
         this.startDate = startDate;
         this.endDate = endDate;        
         this.vendorId = vendorId;
         this.company = company;
+        this.isTest = Boolean.valueOf(isTest);             
     }        
     
     global Database.QueryLocator start(Database.BatchableContext BC) { 
@@ -30,7 +33,12 @@ global class Vendor1099Batch implements Database.Batchable<sObject> {
     		query = 'SELECT Id FROM Account WHERE Vendor_Id__c = :vendorId';  
 		}
         else {
-        	query = 'SELECT Id FROM Account WHERE RecordTypeId = :vendorRecordType'; 
+            if(!isTest) {
+	        	query = 'SELECT Id FROM Account WHERE RecordTypeId = :vendorRecordType';
+            }
+            else {
+                query = 'SELECT Id FROM Account WHERE RecordTypeId = :vendorRecordType LIMIT 1';
+            }
         }
         return Database.getQueryLocator(query);
     }
@@ -61,7 +69,19 @@ global class Vendor1099Batch implements Database.Batchable<sObject> {
             AND c2g__PurchaseInvoice__r.c2g__OwnerCompany__c = :companyId
             AND c2g__PurchaseInvoice__r.c2g__PaymentStatus__c = 'Paid'
 			AND c2g__PurchaseInvoice__r.c2g__Account__r.Id IN :results 
-            GROUP BY c2g__PurchaseInvoice__r.c2g__Account__r.Id HAVING SUM(c2g__NetValue__c) > 0];        
+            GROUP BY c2g__PurchaseInvoice__r.c2g__Account__r.Id HAVING SUM(c2g__NetValue__c) > 0];
+        
+        List<AggregateResult> totalAwards = [
+            SELECT c2g__PurchaseInvoice__r.c2g__Account__r.Id Account, 
+        	SUM(c2g__NetValue__c) Total 
+            FROM c2g__codaPurchaseInvoiceExpenseLineItem__c  
+            WHERE c2g__PurchaseInvoice__r.Type__c = 'Award'
+            AND c2g__PurchaseInvoice__r.c2g__Period__r.c2g__StartDate__c >= :startDate 
+            AND c2g__PurchaseInvoice__r.c2g__Period__r.c2g__EndDate__c <= :endDate
+            AND c2g__PurchaseInvoice__r.c2g__OwnerCompany__c = :companyId
+            AND c2g__PurchaseInvoice__r.c2g__PaymentStatus__c = 'Paid'
+			AND c2g__PurchaseInvoice__r.c2g__Account__r.Id IN :results 
+            GROUP BY c2g__PurchaseInvoice__r.c2g__Account__r.Id HAVING SUM(c2g__NetValue__c) > 0];            
         
         List<AggregateResult> totalOtherCompensation = [
             SELECT Account__r.Id Account, 
@@ -86,6 +106,11 @@ global class Vendor1099Batch implements Database.Batchable<sObject> {
          	totalReimbursementsMap.put((Id) reimbursementTotal.get('Account'), (Double) reimbursementTotal.get('Total'));
         }
         
+        Map<Id, Double> totalAwardsMap = new Map<Id, Double>();
+        for( AggregateResult awardTotal : totalAwards ) {      
+         	totalAwardsMap.put((Id) awardTotal.get('Account'), (Double) awardTotal.get('Total'));
+        }
+        
         Map<Id, Double> otherCompensationMap = new Map<Id, Double>();
         for( AggregateResult otherCompTotal : totalOtherCompensation ) {      
          	otherCompensationMap.put((Id) otherCompTotal.get('Account'), (Double) otherCompTotal.get('Total'));
@@ -94,12 +119,13 @@ global class Vendor1099Batch implements Database.Batchable<sObject> {
         for( Account result : results ) { 
             Double payments = totalPaymentsMap.get(result.Id);
             Double reimbursements = totalReimbursementsMap.get(result.Id);
+            Double awards = totalAwardsMap.get(result.Id);
             Double otherCompensation = otherCompensationMap.get(result.Id);
-            // Prevent insertion of empty records. Payments include reimbursements, so we don't have to check for those.
+            // Prevent insertion of empty records. Payments include reimbursements/awards, so we don't have to check for those explicitly.
             if((payments != null && payments <> 0) || (otherCompensation != null && otherCompensation <> 0)) {
                 X1099_Year__c tenNinetyNineYear = new X1099_Year__c( 
                     Payments__c = payments, Reimbursements__c = reimbursements, Other_Compensation__c = otherCompensation,
-                    Tax_Year__c = taxYear,  Company__c = companyId, Vendor__c = result.Id );
+                    Tax_Year__c = taxYear, Awards__c = awards, Company__c = companyId, Vendor__c = result.Id );
                 forInsert.add(tenNinetyNineYear);
             }
             knockdowns.add(new Account(Id = result.Id, X1099_Processed__c = true));         	

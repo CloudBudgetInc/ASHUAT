@@ -3,8 +3,9 @@ public class RemitAdviceBatchTest {
     
 	static testMethod void testRemitAdvice() {
             
+        final boolean TESTING = true;    
     	Test.startTest();
-        RemitAdviceBatch rab = new RemitAdviceBatch();
+        RemitAdviceBatch rab = new RemitAdviceBatch(TESTING);
         Id jobid = Database.executeBatch(rab, 1);
         Test.stopTest();
 
@@ -13,8 +14,10 @@ public class RemitAdviceBatchTest {
     }
     
     static testMethod void testScheduler() { 
+
+        final boolean TESTING = true;        
         Test.startTest();
-		System.schedule('RemitAdviceBatchScheduler', '0 0 1 * * ?', new RemitAdviceBatch());
+		System.schedule('RemitAdviceBatchScheduler', '0 0 1 * * ?', new RemitAdviceBatch(TESTING));
         Test.stopTest();
         List<AsyncApexJob> batchJobs = [SELECT Id, Status FROM AsyncApexJob WHERE ApexClass.Name = 'RemitAdviceBatch' 
         	AND JobType = 'BatchApex' AND Status = 'Queued'];        

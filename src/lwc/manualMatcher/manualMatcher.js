@@ -3,7 +3,7 @@ import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import bankStatementTransactions from '@salesforce/apex/ReconcilerController.bankStatementTransactions';
 import generalLedgerTransactions from '@salesforce/apex/ReconcilerController.generalLedgerTransactions';
 import handleMatch from '@salesforce/apex/ReconcilerController.handleMatch';
-import clearData from '@salesforce/apex/ReconcilerController.clear'; 
+/** import clearData from '@salesforce/apex/ReconcilerController.clear'; */
 
 export default class Reconcile extends LightningElement {
 
@@ -14,11 +14,10 @@ export default class Reconcile extends LightningElement {
     isMatching = false; // [CM5]: hide the 'difference' indicator as needed.
     buttondisabled = true;
     buttonLabel = 'Match';
-    
     showStatement = true;
     statementLinkLabel = 'hide table';
-
-    previousBANKselectedRows = [];
+    sortedBy = 'Transaction_Date_Display__c'; // Set initial sort field
+    sortDirection = 'asc'; // Set initial sort direction
     difference = 0;
     /*  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
     STATEMENTstartDate;
@@ -33,19 +32,11 @@ export default class Reconcile extends LightningElement {
     STATEMENTmatchStatus = 'All';
     STATEMENTcheckFilter = '';
     STATEMENTcolumns = [
-        { label: 'Transaction Date', fieldName: 'Transaction_Date_Display__c', type: 'date', hideDefaultActions: true },
-        { label: 'Check Number', fieldName: 'Addenda_1__c', type: 'text', hideDefaultActions: true },
-        { label: 'Reference', fieldName: 'Reference__c', type: 'text', hideDefaultActions: true },
-        { label: 'Type', fieldName: 'Type__c', type: 'text', fixedWidth: 300, hideDefaultActions: true },
-        { label: 'Matched Status', fieldName: 'Match_Status__c', type: 'text', fixedWidth: 160, hideDefaultActions: true },
-        { label: 'Amount', fieldName: 'Amount__c', type: 'currency', fixedWidth: 160, hideDefaultActions: true },
-        { label: 'Remaining Amount', fieldName: 'Remaining_Amount__c', type: 'currency', fixedWidth: 160, hideDefaultActions: true }
-    ];
-    STATEMENTmatchStatusOptions = [
-        { label: 'All', value: 'All' },
-        { label: 'Unmatched', value: 'Unmatched' },
-        // { label: 'Matched', value: 'Matched' },
-        { label: 'Partial Matched', value: 'Partial Matched' },
+        { label: 'Transaction Date', fieldName: 'Transaction_Date_Display__c', type: 'date', hideDefaultActions: true, sortable: true },
+        { label: 'Check Number', fieldName: 'Addenda_1__c', type: 'text', hideDefaultActions: true, sortable: true },
+        { label: 'Reference', fieldName: 'Reference__c', type: 'text', hideDefaultActions: true, sortable: true },
+        { label: 'Type', fieldName: 'Type__c', type: 'text', hideDefaultActions: true, sortable: true },
+        { label: 'Amount', fieldName: 'Amount__c', type: 'currency', hideDefaultActions: true, sortable: true }
     ];
     STATEMENTTypeOptions = [
         { label: 'All', value: 'All' },
@@ -64,13 +55,13 @@ export default class Reconcile extends LightningElement {
     LEDGERhasRows = false;
     LEDGERselectedTotal = 0;
     LEDGERcolumns = [
-        { label: 'Transaction Date', fieldName: 'Transaction_Date_Display__c', type: 'date', hideDefaultActions: true },
-        { label: 'Account', fieldName: 'Account__c', type: 'text', hideDefaultActions: true },
-        { label: 'Reference', fieldName: 'Reference__c', type: 'text', hideDefaultActions: true },
-        { label: 'Type', fieldName: 'Transaction_Type__c', type: 'text', fixedWidth: 300, hideDefaultActions: true },
-        { label: '', type: 'text', fixedWidth: 160, hideDefaultActions: true },
-        { label: 'Amount', fieldName: 'Amount__c', type: 'currency', fixedWidth: 160, hideDefaultActions: true },
-        { label: '', type: 'text', fixedWidth: 160, hideDefaultActions: true }
+        { label: 'Transaction Date', fieldName: 'Transaction_Date_Display__c', type: 'date', hideDefaultActions: true, sortable: true },
+        { label: 'Account', fieldName: 'Account__c', type: 'text', hideDefaultActions: true, sortable: true },
+        { label: 'Reference', fieldName: 'Reference__c', type: 'text', hideDefaultActions: true, sortable: true },
+        { label: 'Type', fieldName: 'Transaction_Type__c', type: 'text', hideDefaultActions: true, sortable: true },
+        /**{ label: '', type: 'text', fixedWidth: 160, hideDefaultActions: true },*/
+        { label: 'Amount', fieldName: 'Amount__c', type: 'currency', hideDefaultActions: true, sortable: true },
+        /**{ label: '', type: 'text', fixedWidth: 160, hideDefaultActions: true } */
     ];
     LEDGERTypeOptions = [
         { label: 'All', value: 'All' },
@@ -97,6 +88,29 @@ export default class Reconcile extends LightningElement {
         this.LEDGERloadRecordData();
         this.STATEMENTloadRecordData();
     }
+
+    handleResetLite() { 
+
+        const STATEMENTDataTable = this.template.querySelector('[data-table="STATEMENT"]');
+        if (STATEMENTDataTable) {
+            STATEMENTDataTable.selectedRows = [];
+        }
+
+        // Clear selected rows for the LEDGER datatable
+        const LEDGERDataTable = this.template.querySelector('[data-table="LEDGER"]');
+        if (LEDGERDataTable) {
+            LEDGERDataTable.selectedRows = [];
+        }
+        this.STATEMENTselectedTotal = 0;
+        this.LEDGERselectedTotal = 0;        
+    }
+
+    handleRelay() { 
+        this.LEDGERstartDate = this.STATEMENTstartDate;
+        this.LEDGERendDate = this.STATEMENTendDate;
+        this.LEDGERloadRecordData();
+    }    
+
     /*  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
     // Clear filters and reload data
     handleReset() {
@@ -114,17 +128,18 @@ export default class Reconcile extends LightningElement {
             LEDGERDataTable.selectedRows = [];
         }
         // Reset STATEMENT filters
-        //this.STATEMENTstartDate = null;
-        //this.STATEMENTendDate = null;
+        this.STATEMENTstartDate = null;
+        this.STATEMENTendDate = null;
         this.STATEMENTTypeFilter = '';
         this.STATEMENTReferenceFilter = '';
         this.STATEMENTAmountFilter = '';
+        this.STATEMENTcheckFilter = '';
         this.STATEMENTselectedRows = [];
         this.STATEMENTselectedTotal = 0;
 
         // Reset LEDGER filters
-        //this.LEDGERstartDate = null;
-        //this.LEDGERendDate = null;
+        this.LEDGERstartDate = null;
+        this.LEDGERendDate = null;
         this.LEDGERAccountFilter = '';
         this.LEDGERTypeFilter = '';
         this.LEDGERReferenceFilter = '';
@@ -384,7 +399,7 @@ export default class Reconcile extends LightningElement {
                     this.reconciled = true;
                     this.LEDGERselectedRows = [];   // add to clear checkboxes on match
                     this.STATEMENTselectedRows = [];    // add to clear checkboxes on match
-                    this.handleReset();
+                    this.handleResetLite();
                     this.LoadAllData();
                     this.isMatching = false;
                 }
@@ -401,6 +416,7 @@ export default class Reconcile extends LightningElement {
     }
     /*  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
 
+/**
     handleClearData() {
         this.loading = true;
         this.buttondisabled = true;
@@ -415,6 +431,7 @@ export default class Reconcile extends LightningElement {
                 this.showToast('Error', 'An error occurred while clearing data', 'error');
             });
     }
+*/
     
     /*  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
     showToast(title, message, variant) {
@@ -424,5 +441,83 @@ export default class Reconcile extends LightningElement {
             variant: variant,
         });
         this.dispatchEvent(evt);
+    }
+
+    // onsort event handler
+    handleLedgerSort(event) {
+        const { fieldName: newSortedBy, sortDirection: newSortDirection } = event.detail;
+    
+        // Toggle the sort direction manually if the field is the same
+        const sortDirection = (this.sortedBy === newSortedBy && this.sortDirection === 'asc') ? 'desc' : 'asc';
+        this.sortedBy = newSortedBy;
+        this.sortDirection = sortDirection;
+        this.sortLedgerData();
+    }    
+
+    // onsort event handler
+    handleBankSort(event) {
+        const { fieldName: newSortedBy, sortDirection: newSortDirection } = event.detail;
+    
+        // Toggle the sort direction manually if the field is the same
+        const sortDirection = (this.sortedBy === newSortedBy && this.sortDirection === 'asc') ? 'desc' : 'asc';
+        this.sortedBy = newSortedBy;
+        this.sortDirection = sortDirection;
+        this.sortBankData();
+    }        
+
+    sortBankData() {
+        const isReverse = this.sortDirection === 'asc' ? 1 : -1;
+        const sortedData = [...this.STATEMENTrecordData];
+    
+        sortedData.sort((a, b) => {
+            let valA = a[this.sortedBy];
+            let valB = b[this.sortedBy];
+    
+            // Handle nulls
+            valA = (valA === null) ? '' : valA;
+            valB = (valB === null) ? '' : valB;
+    
+            // Adjust for different types
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+    
+            // Adjust for numeric comparison
+            if (!isNaN(valA) && !isNaN(valB)) {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+    
+            return isReverse * ((valA > valB) - (valB > valA));
+        });
+    
+        this.STATEMENTrecordData = sortedData;    
+    }    
+    
+    sortLedgerData() {
+        const isReverse = this.sortDirection === 'asc' ? 1 : -1;
+        const sortedData = [...this.LEDGERrecordData];
+    
+        sortedData.sort((a, b) => {
+            let valA = a[this.sortedBy];
+            let valB = b[this.sortedBy];
+    
+            // Handle nulls
+            valA = (valA === null) ? '' : valA;
+            valB = (valB === null) ? '' : valB;
+    
+            // Adjust for different types
+            if (typeof valA === 'string') valA = valA.toLowerCase();
+            if (typeof valB === 'string') valB = valB.toLowerCase();
+    
+            // Adjust for numeric comparison
+            if (!isNaN(valA) && !isNaN(valB)) {
+                valA = parseFloat(valA);
+                valB = parseFloat(valB);
+            }
+    
+            return isReverse * ((valA > valB) - (valB > valA));
+        });
+    
+        this.LEDGERrecordData = sortedData;    
     }
 }

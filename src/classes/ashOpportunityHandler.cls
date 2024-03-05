@@ -91,15 +91,7 @@ global class ashOpportunityHandler implements Queueable {
             resp.message = 'Payment record created successfully.';
             resp.paymentId = oppPayment.Id; // Pass the Payment ID
             responses.add(resp);
-
-        } catch(QueryException qe) {
-            Response resp = new Response();
-            resp.message = 'Query Error: ' + qe.getMessage();
-            responses.add(resp);
-        } catch(DmlException de) {
-            Response resp = new Response();
-            resp.message = 'DML Error: ' + de.getMessage();
-            responses.add(resp);
+       
         } catch(Exception e) {
             Response resp = new Response();
             resp.message = 'Unexpected Error: ' + e.getMessage();

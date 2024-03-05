@@ -1,0 +1,68 @@
+.my-modal .slds-modal__container {
+    width: 80%; /* or 800px or any other measurement */
+    max-width: 90%; /* Optional: for responsiveness */
+}
+/* Setting the default width for all columns */
+.slds-table th,
+.slds-table td {
+    width: 20%;
+}
+
+/* Targeting the second column (Content) specifically */
+.slds-table th:nth-of-type(2),
+.slds-table td:nth-of-type(2) {
+    width: 40%;
+}
+.slds-table th:nth-of-type(4),
+.slds-table td:nth-of-type(4)
+.slds-table th:nth-of-type(5),
+.slds-table td:nth-of-type(5) {
+    width: 10%;
+}
+
+.slds-table thead th,
+.slds-table tbody td {
+    border: 1px solid #d1d1d1; /* Light grey border */
+}
+
+/* Optional: Adjust padding for a more compact look similar to a spreadsheet */
+.slds-table th,
+.slds-table td {
+    padding: 0.25rem 0.5rem; /* Adjust padding as needed */
+}
+.transaction-modal .slds-modal__container {
+    width: 95%;
+    max-width: 95%;
+}
+/* Target the header and rows of the datatable and apply border styling */
+.custom-datatable lightning-datatable::part(row),
+.custom-datatable lightning-datatable::part(header) {
+    border: 1px solid var(--lwc-borderColor, #d8dde6); /* Default border color */
+}
+.spinner-container {
+    position: relative;
+    display: inline-block;
+}
+
+.spinner-text {
+    position: absolute;
+    top: 60%; /* Push down below the spinner */
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+     font-size: 18px; /* Set the font size to 18 pixels */
+}
+
+lightning-spinner {
+    display: block;
+    margin: auto;
+}
+.my-datatable th,
+.my-datatable td {
+    border: 1px solid #d8dde6; /* SLDS color for borders */
+}
+
+.custom-button-small {
+    height: 2rem; /* Small height */
+    font-size: 0.75rem; /* Small font size */
+}

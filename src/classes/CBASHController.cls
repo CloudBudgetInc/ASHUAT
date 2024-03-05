@@ -235,16 +235,16 @@ public with sharing class CBASHController {
 		String rowdescription = oldRow.description;
 		String rowie = row.ie;
 		for(cb4__CBTag__c blAmount : Database.query('SELECT ' + cb4.CBUtils.getAllSObjectFields('cb4__CBTag__c', 'cb4__Tag1__r.cb4__Tag6__c, cb4__Tag1__r.cb4__Tag7__c, cb4__Tag1__r.cb4__Tag8__c, cb4__Tag1__r.cb4__Tag9__c, cb4__Tag2__r.cb4__Tag1Name__c, cb4__Tag1__r.cb4__Status__c, cb4__Tag1__r.cb4__Tag10__c') +
-											' WHERE cb4__Dimension__c = :budgetAppAmountDimId AND ' +
-											'cb4__Tag1__c  = :rowapp         AND ' +
-											'cb4__Tag2__c  = :rowaccount     AND ' +
-											'cb4__Tag6__c  = :rowdim6        AND ' +
-											'cb4__Tag7__c  = :rowdim7        AND ' +
-											'cb4__Tag8__c  = :rowdim8        AND ' +
-											'cb4__Tag9__c  = :rowdim9        AND ' +
-											'cb4__Text3__c = :rowtitle       AND ' +
-											'cb4__Text4__c = :rowdescription AND ' +
-											'cb4__Text2__c = :rowie')){
+				' WHERE cb4__Dimension__c = :budgetAppAmountDimId AND ' +
+				'cb4__Tag1__c  = :rowapp         AND ' +
+				'cb4__Tag2__c  = :rowaccount     AND ' +
+				'cb4__Tag6__c  = :rowdim6        AND ' +
+				'cb4__Tag7__c  = :rowdim7        AND ' +
+				'cb4__Tag8__c  = :rowdim8        AND ' +
+				'cb4__Tag9__c  = :rowdim9        AND ' +
+				'cb4__Text3__c = :rowtitle       AND ' +
+				'cb4__Text4__c = :rowdescription AND ' +
+				'cb4__Text2__c = :rowie')){
 			blAmount.cb4__Decimal1__c = 0;
 			blAmount.cb4__Boolean1__c = blAmount.cb4__Boolean1__c != row.boolean1 ? row.boolean1 : blAmount.cb4__Boolean1__c;
 			blAmount.cb4__Text6__c = blAmount.cb4__Text6__c != row.text6 ? row.text6 : blAmount.cb4__Text6__c;

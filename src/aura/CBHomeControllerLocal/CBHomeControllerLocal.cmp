@@ -24,7 +24,7 @@
 
 		<aura:set attribute="body">
 			<lightning:tabset selectedTabId="blocker">
-			<lightning:tab label="Budget Locker" id="blocker">
+				<lightning:tab label="Budget Locker" id="blocker">
 					<lightning:layout>
 						<lightning:layoutItem padding="around-none" class="slds-p-top_large slds-p-left_medium">
 							<lightning:buttonIcon iconName="utility:refresh" alternativeText="Refresh current periods lock status" onclick="{!c.refreshCurrentUpdateStatuses}" variant="brand"/>

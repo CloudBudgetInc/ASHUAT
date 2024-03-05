@@ -14,7 +14,8 @@ global class ConcurProcessInvoiceBatch implements Database.Batchable<sObject> {
         String query = 'SELECT Id, Invoice_Number__c, Vendor_ID__c, Intercompany_ID__c, Transaction_Amount__c, ' + 
             'Apply_Date__c, Description_1__c, Description_2__c, Company_ID__c, Payment_Type__c, Account_Code__c, Charitable_Program__c, ' + 
             'Department__c, Program__c, Project__c, Other__c, Invoice_Date__c, Officer__c, Expense_Year__c, X1099_Number__c,  ' + 
-            'Concur_Key__c, Concur_Id__c, Sign__c, Prepaid_Start_Date__c, Prepaid_End_Date__c, Type__c, Submitter__c, Reimbursement__c ' + 
+            'Concur_Key__c, Concur_Id__c, Sign__c, Prepaid_Start_Date__c, Prepaid_End_Date__c, Type__c, Submitter__c, Reimbursement__c, ' + 
+            'Concur_Batch__r.Batch_ID__c ' + 
             'FROM Payment_Shuttle__c ' + 
             'WHERE Source__c = :source AND Processed__c = false AND Failed__c = false AND Company_ID__c = :company AND Concur_Batch__r.Id = :batchId';
         return Database.getQueryLocator(query);
@@ -41,8 +42,8 @@ global class ConcurProcessInvoiceBatch implements Database.Batchable<sObject> {
 				newPin.Concur_Key__c = someShuttle.Concur_Key__c;
                 newPin.Concur_Id__c = someShuttle.Concur_Id__c;
                 newPin.Source__c = 'Concur';
+                newPin.Batch__c = someShuttle.Concur_Batch__r.Batch_ID__c;
                 newPin.Type__c = getInvoiceType(someShuttle.Type__c);
-                newPin.Batch__c = batchId;
                 Account someVendor = provider.getVendor(someShuttle.Vendor_ID__c);                
                 if(someVendor == null ) { // Skip to next if the vendor isn't found.
                     someShuttle.Failed__c = true;

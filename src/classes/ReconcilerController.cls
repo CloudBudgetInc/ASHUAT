@@ -13,8 +13,6 @@ public with sharing class ReconcilerController {
         Decimal amountFilterValue = (AmountFilter != null && AmountFilter != '') ? Decimal.valueOf(AmountFilter) : null;
         Decimal amountFilterValueInverse = (amountFilterValue != null) ? amountFilterValue * -1 : null;
 
-        //recordId = 'aBa540000004Ny9CAE';
-        System.debug(recordId);
         // Get reconciliation including GL account Id.
         Reconciliation__c thisRec = [SELECT Id, General_Ledger_Account__c FROM Reconciliation__c WHERE Id = :recordId];
         Id generalLedgerAccount = thisRec.General_Ledger_Account__c;
@@ -31,8 +29,12 @@ public with sharing class ReconcilerController {
         List<String> conditions = new List<String>();
 
         // Add General Ledger as a default filter.
-        conditions.add('General_Ledger_Account__c = :generalLedgerAccount');        
-
+        conditions.add('General_Ledger_Account__c = :generalLedgerAccount');
+                                                               
+		// Temp exclude sweep transactions. At Period 4, we remove this.
+		// String sweepReferenceWildcard = 'YC-%';
+		// conditions.add('(NOT Reference__c LIKE :sweepReferenceWildcard)');
+                                                               
         // Add condition to filter by Match_Status__c based on strMatchStatus parameter
         if (strMatchStatus != null && strMatchStatus != '' && strMatchStatus != 'All' ) {
             conditions.add('Match_Status__c = :strMatchStatus');
@@ -100,14 +102,13 @@ public with sharing class ReconcilerController {
                                                            String ReferenceFilter, 
                                                            String AccountFilter, 
                                                            String AmountFilter ) {
+        System.debug(recordId);
+                                                               
         // Convert AmountFilter to a decimal value
         Decimal amountFilterValue = (AmountFilter != null && AmountFilter != '') ? Decimal.valueOf(AmountFilter) : null;
         Decimal amountFilterValueInverse = (amountFilterValue != null) ? amountFilterValue * -1 : null;
         String matchStatus = 'Matched';
         String unMatchStatus = 'Unmatched';
-
-        //recordId = 'aBa540000004Ny9CAE';
-        System.debug(recordId);
                                                                
         // Get reconciliation including GL account Id.
         Reconciliation__c thisRec = [SELECT Id, General_Ledger_Account__c FROM Reconciliation__c WHERE Id = :recordId];
@@ -171,6 +172,10 @@ public with sharing class ReconcilerController {
 /*  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
     @AuraEnabled(cacheable=false)
     public static boolean handleMatch(List<String> selectedStatementRowIds, List<String> selectedBankTransactionRowIds, String recordId ) {
+        System.debug('hiiiiiiii');
+        System.debug(selectedStatementRowIds.size());
+        System.debug(selectedBankTransactionRowIds.size());
+        
         // Query the Statement records
         List<Bank_Statement_Line_Item__c> statementRecords = [SELECT Id, Amount__c, Match_Status__c, Remaining_Amount__c, Bank_Match__c FROM Bank_Statement_Line_Item__c WHERE Id IN :selectedStatementRowIds];
 
@@ -178,28 +183,26 @@ public with sharing class ReconcilerController {
         List<Bank_Transaction__c> bankTransactionRecords = [SELECT Id, Amount__c, Match_Status__c, Bank_Match__c FROM Bank_Transaction__c  WHERE Id IN :selectedBankTransactionRowIds];
 
         if( recordId != null || recordId != '' ) {
+            System.debug('doin the matching thing');
             Bank_Match__c newBankMatch = new Bank_Match__c();
             newBankMatch.Reconciliation__c = recordId;
             insert newBankMatch;
 
             for (Bank_Statement_Line_Item__c bsi : statementRecords) {
+                System.debug(bsi);
                 bsi.Bank_Match__c = newBankMatch.Id;
             }
             
             for (Bank_Transaction__c bt : bankTransactionRecords) {
+                System.debug(bt);
                 bt.Bank_Match__c = newBankMatch.Id;
             }
-        
         }    
 
         // Calculate the sum of Amounts for statementRecords
         Decimal statementTotal = 0;
         for (Bank_Statement_Line_Item__c statementRecord : statementRecords) {
-            if( statementRecord.Remaining_Amount__c == null || statementRecord.Remaining_Amount__c == 0 ) {
-                statementTotal += statementRecord.Amount__c;
-            } else {
-                statementTotal += statementRecord.Remaining_Amount__c;
-            }
+			statementTotal += statementRecord.Amount__c;
         }
 
         // Calculate the sum of Amounts for bankTransactionRecords
@@ -208,48 +211,16 @@ public with sharing class ReconcilerController {
             bankTransactionTotal += bankTransactionRecord.Amount__c;
         }
 
-        // Set the Match Status and Remaining_Amount__c based on the sums
-        if (statementTotal == bankTransactionTotal) {
-            for (Bank_Statement_Line_Item__c statementRecord : statementRecords) {
-                statementRecord.Match_Status__c = 'Matched';
-                if (statementRecord.Remaining_Amount__c != null) {
-                    statementRecord.Remaining_Amount__c += 0; // No change to existing Remaining_Amount__c
-                } else {
-                    statementRecord.Remaining_Amount__c = 0;
-                }
-            }
-            for (Bank_Transaction__c bankTransactionRecord : bankTransactionRecords) {
-                bankTransactionRecord.Match_Status__c = 'Matched';
-            }
-        } else {
-            // Calculate the difference and set the Remaining_Amount__c for partially matched statement rows
-            system.debug('\n bankTransactionTotal :\n' + bankTransactionTotal);
-            system.debug('\n statementTotal :\n' + statementTotal);
-            Double difference = statementTotal - bankTransactionTotal;
-            system.debug('\n DIFFERENCE:\n' + difference);
-            for (Bank_Statement_Line_Item__c statementRecord : statementRecords) {
-                if (statementRecord.Remaining_Amount__c != null) {
-                    // Subtract the matched amount from the existing Remaining_Amount__c
-                    if( statementRecord.Remaining_Amount__c == null || statementRecord.Remaining_Amount__c == 0 ) {
-                        statementRecord.Remaining_Amount__c += difference;
-                    } else {
-                        statementRecord.Remaining_Amount__c = difference;
-                    }    
-                } else {
-                    statementRecord.Remaining_Amount__c = difference;
-                }
-                if (difference == 0) {
-                    statementRecord.Match_Status__c = 'Matched';
-                } else {
-                    statementRecord.Match_Status__c = 'Partial Match';
-                }
-            }
-            for (Bank_Transaction__c bankTransactionRecord : bankTransactionRecords) {
-                bankTransactionRecord.Match_Status__c = 'Matched';
-            }
+        // Set the Match Status
+        for (Bank_Statement_Line_Item__c statementRecord : statementRecords) {
+            statementRecord.Match_Status__c = 'Matched';
+        }
+        
+        for (Bank_Transaction__c bankTransactionRecord : bankTransactionRecords) {
+            bankTransactionRecord.Match_Status__c = 'Matched';
         }
 
-        // Update the records with the new Match Status and Remaining_Amount__c values
+        // Update the records with the new Match Status values
         if (!statementRecords.isEmpty()) {
             update statementRecords;
         }
@@ -260,6 +231,7 @@ public with sharing class ReconcilerController {
         return true;
     }
 /*  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- */
+/**
     @AuraEnabled(cacheable=false)
     public static void clear() {
         List<Bank_Statement_Line_Item__c> statementRecords = [SELECT Id, Amount__c, Match_Status__c, Remaining_Amount__c FROM Bank_Statement_Line_Item__c WHERE Match_Status__c = 'Matched' OR Match_Status__c = 'Partial Matched'];
@@ -280,5 +252,77 @@ public with sharing class ReconcilerController {
             }
             update bankTransactionRecords; 
         }
+    }
+*/
+    
+//  =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+//  Combined Table
+    @AuraEnabled
+    public static List<mergedTransaction> transactions( String recordId,
+                                                        String bankStartDate,
+                                                        String bankEndDate,
+                                                        String bankTypeFilter,
+                                                        String bankReferenceFilter,
+                                                        String bankAmountFilter,
+                                                        String bankstrMatchStatus,
+                                                        String bankcheckFilter,
+                                                        String transactionStartDate,
+                                                        String transactionEndDate,
+                                                        String transactionTypeFilter,
+                                                        String transactionReferenceFilter,
+                                                        String transactionAccountFilter,
+                                                        String transactionAmountFilter)
+    {
+        List<Bank_Statement_Line_Item__c> bankStatementTransactions = bankStatementTransactions( recordId, bankStartDate, bankEndDate, bankTypeFilter, bankReferenceFilter, bankAmountFilter, bankstrMatchStatus, bankcheckFilter );
+        List<Bank_Transaction__c> generalLedgerTransactions = generalLedgerTransactions( recordId, transactionStartDate, transactionEndDate, transactionTypeFilter, transactionReferenceFilter, transactionAccountFilter, transactionAmountFilter ); 
+
+        //system.debug( '\n\n' + JSON.serialize(bankStatementTransactions) + '\n') ;
+        //system.debug( '\n\n' + JSON.serialize(generalLedgerTransactions) + '\n') ;
+
+        List<mergedTransaction> response = new List<mergedTransaction>();
+        mergedTransaction t;
+
+        for( Bank_Statement_Line_Item__c s : bankStatementTransactions ) {
+            t = new mergedTransaction();
+            t.TransactionDate = s.Transaction_Date_Display__c;
+            t.CheckNumber = s.Addenda_1__c;
+            t.Reference = s.Reference__c;
+            t.Type = s.Type__c;
+            t.amount = s.Amount__c;
+            t.remainingAmount = s.Remaining_Amount__c;
+            t.transactionType = 'Bank';
+            t.recordId = s.Id;
+            //system.debug(t);
+            response.add(t);
+        }
+
+        for( Bank_Transaction__c gl: generalLedgerTransactions ) {
+            t = new mergedTransaction();
+            t.TransactionDate = gl.Transaction_Date_Display__c;
+            t.account = gl.Account__c;
+            t.Reference = gl.Reference__c;
+            t.Type = gl.Transaction_Type__c;
+            t.amount = gl.Amount__c;            
+            t.transactionType = 'GL';
+            t.recordId = gl.id;
+            //system.debug(t);
+            response.add(t);
+        }
+        
+        //System.debug(response);
+        return response;
+    }
+
+    public class MergedTransaction {
+        @AuraEnabled public date TransactionDate;
+        @AuraEnabled public string CheckNumber;
+        @AuraEnabled public string Reference;
+        @AuraEnabled public string Type;
+        @AuraEnabled public double amount;
+        @AuraEnabled public double remainingAmount;
+        @AuraEnabled public string matchedStatus;
+        @AuraEnabled public string account;
+        @AuraEnabled public string transactionType;
+        @AuraEnabled public id recordId;
     }
 }

@@ -1,0 +1,259 @@
+<template>
+
+	<template lwc:if={isLoading}>
+		<div class="slds-is-relative slds-spinner_container">
+			<img src={loadingSignASH}/>
+			<!--lightning-spinner alternative-text="Loading...">
+            </lightning-spinner-->
+		</div>
+	</template>
+	<template if:true={page1}>
+
+		<div><b style="color:red">*</b><b>= Required Field</b></div>
+		<lightning-card title="CONTRIBUTION AMOUNT">
+
+			<div class="slds-p-horizontal_small">
+				<div>
+					<b style="color:red">*</b><b>The minimum contribution amount is $1.</b>
+				</div>
+				<template lwc:if={showErrorMessage}>
+					<div style="color:red">
+						{errorMessage}
+					</div>
+				</template>
+				<b style="color:#b7000f">Areas of Support</b>
+
+				<div>
+					<b>
+						<template for:each={generalAccountingUnitList} for:item="item">
+							<lightning-input type="number" name="race2013" label={item.Name} formatter="currency" variant="label-inline" placeholder="$0.00"  step="0.01" value={gac} onblur={handleChange1} key={item.Name}></lightning-input>
+				    	</template>
+				    </b>
+				</div>
+				<br/>
+				<div>
+					<b style="color:black">DEDICATION</b>
+				</div>
+				<div>
+					<lightning-input type="checkbox" name="isDedication"
+						label="My gift is made in honor (or in memory) of someone." onchange={handleChange}
+						value={isDedication}></lightning-input>
+					<template lwc:if={isDedication}>
+						<b>
+												<lightning-radio-group name="radioGroup"
+																							 label="THIS DONATION IS:"
+																							 options={dedicationOptions}
+																							 value={dedicationOption}
+																							 onchange={ondedicationOption}
+																							 type="radio" required></lightning-radio-group>
+												<lightning-input type="text" name="dedicationName" label="NAME:" variant="label-inline" required onchange={handleChange}></lightning-input>
+												<lightning-input type="checkbox" name="isNotifyDedication" variant="label-inline" label="I would like to notify someone about my donation." onchange={handleChange} value={isNotifyDedication}></lightning-input>
+								           <br/>
+													<template lwc:if={isNotifyDedication}>
+															<p style="font-weight: normal; padding-top: -0.5em;">Please provide a message and tell us where to send the acknowledgement letter below. This letter will not include your contribution amount. (Maximum of 255 characters)</p>
+														<lightning-input-rich-text name="dedicationMessage" variant="label-inline" value={dedicationMessage} onchange={handleChange}></lightning-input-rich-text>
+														Send acknowledgement letter to:
+														<lightning-combobox  name="dedicationprefix"  label= "PREFIX:" value={genericInputs.dedicationprefix} variant="label-inline" options={optionPrefix} onchange={handleChange} >></lightning-combobox>			
+														<lightning-input type="text" name="dedicationFName" variant="label-inline" label="FIRST NAME:" value={genericInputs.dedicationFName} required onchange={handleFChange}> </lightning-input>
+														<lightning-input type="text" name="dedicationmName" variant="label-inline" label="MIDDLE NAME:"  value={genericInputs.dedicationmName} onchange={handleChange}> </lightning-input>
+														<lightning-input type="text" name="dedicationlName" variant="label-inline" label="LAST NAME:" value={genericInputs.dedicationlName} required onchange={handleLChange}> </lightning-input>
+														<lightning-input type="text" name="dedicationemail" variant="label-inline" label="EMAIL:" value={genericInputs.dedicationemail} required onchange={handleEChange}></lightning-input>	
+														<!--lightning-input name="dedicationtelephone" style="display: flex;flex-flow: row nowrap; align-items: center;"  label="Telephone:" value={genericInputs.dedicationtelephone} pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" onchange={handleChange} required > </lightning-input-->
+													<!--  <div class="slds-p-bottom_small">
+														<c-use-i-t-i ontelephonevaluechange={handlededicationtelephoneValuechange}></c-use-i-t-i>
+														</div>-->
+													<!--	<template lwc:if={telephoneval}>
+															<div style="text-align: center;">
+                               								<p style="color: red;" >complete this field.</p>
+															   
+                            							</template>  --->
+														<lightning-combobox name="dedicationaddressType" variant="label-inline" label= "ADDRESS TYPE:" value={genericInputs.dedicationaddressType} required options={optionsaddr} onchange={handleChange} >></lightning-combobox>															
+														<lightning-input type="text" name="dedicationompany" variant="label-inline" label="COMPANY:" value={genericInputs.dedicationompany} onchange={handleChange} > </lightning-input>
+														<lightning-input type="text" name="dedicationdepartment" variant="label-inline" label="DEPARTMENT:" value={genericInputs.dedicationdepartment} onchange={handleChange} > </lightning-input>
+														<lightning-combobox  name="dedicationCountry" variant="label-inline" label="COUNTRY:"  value="United States of America" placeholder="United States of America" options={options} onchange={handleChange} required>></lightning-combobox>
+														<lightning-input type="text" name="dedicationaddress1" variant="label-inline" label="ADDRESS 1:" value={genericInputs.dedicationaddress1} required onchange={handleChange} > </lightning-input>
+														<lightning-input type="text" name="dedicationaddress2" variant="label-inline" label="ADDRESS 2:" value={genericInputs.dedicationaddress2} onchange={handleChange} > </lightning-input>
+														<lightning-input type="text" name="dedicationcity" variant="label-inline" label="CITY:" value={genericInputs.dedicationcity} required onchange={handleChange} > </lightning-input>
+														<template if:true={showStatededication}>
+                                                         <lightning-combobox  name="dedicationstate" variant="label-inline"  label="STATE:"  value={genericInputs.dedicationstate} placeholder="Select State" options={stateOptionsdedication} onchange={handleChange} required></lightning-combobox>
+									                 	</template>
+														
+														<lightning-input type="text" name="dedicationpostalCode" variant="label-inline" label="POSTAL CODE:" value={genericInputs.dedicationpostalCode} onchange={handleChange} required> </lightning-input>
+											    
+									
+														
+														</template>
+														</b>
+
+					</template>
+
+				</div>
+
+
+				<b style="color:black">MY BILLING AND CONTACT INFORMATION</b>
+				<div>
+					<b>
+										<lightning-combobox  name="prefix" variant="label-inline" label= "PREFIX:" value={genericInputs.prefix}   options={optionPrefix} onchange={handleChange} >></lightning-combobox>
+								        <lightning-input type="text" name="fName" variant="label-inline" label="FIRST NAME:" value={genericInputs.fName} required onchange={handleFChange}> </lightning-input>
+										<!-- <lightning-input type="text" name="fName" variant="label-inline" label="FIRST NAME:" value={genericInputs.fname} onchange={handleFnameChange} required> </lightning-input> -->
+										<lightning-input type="text" name="mName" variant="label-inline" label="MIDDLE NAME:" value={genericInputs.mName} onchange={handleFnameChange} > </lightning-input>
+										<lightning-input type="text" name="lName" variant="label-inline" label="LAST NAME:" required = true value={genericInputs.lName} onchange={handleLnameChange} > </lightning-input>
+										<lightning-input type="text" name="Cred" variant="label-inline" label="CREDENTIALS:" value={genericInputs.Cred} onchange={handleCredChange} > </lightning-input>	
+										<lightning-input type="email" name="emailId" variant="label-inline" label="Email:" value={genericInputs.emailId} onchange={handlemailChange} required > </lightning-input>	
+									    <div class="slds-p-bottom_small">
+						       	<c-use-i-t-i ontelephonevaluechange={handletelephoneValuechange} phone-val={phonenumbevalue}></c-use-i-t-i>
+								   <template lwc:if={telephoneval}>
+                               				<p style="color: red; margin-left: 33%;">complete this field.</p>
+                            		</template>
+							</div>
+										
+										<!--lightning-input type="tel" name="telephone" style="display: flex;flex-flow: row nowrap; align-items: center;"  label="Telephone:" value={genericInputs.telephone} pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}" onchange={handleChange} required > </lightning-input-->	
+										<lightning-combobox name="addressType" variant="label-inline" label= "ADDRESS TYPE:" value={genericInputs.addressType}  options={optionsaddr} onchange={handleChange} required >></lightning-combobox>
+										<template lwc:if={AddressTypevar}>															
+										<lightning-input type="text" name="institution" variant="label-inline" label="INSTITUTION:" value={genericInputs.institution} onchange={handleChange} > </lightning-input>
+										<lightning-input type="text" name="department" variant="label-inline" label="DEPARTMENT:" value={genericInputs.department} onchange={handleChange} > </lightning-input>
+										</template>
+										<lightning-combobox  name="Country" variant="label-inline" label="COUNTRY:"  value="United States of America" placeholder="United States of America" options={options} onchange={handleCountryChange} required>></lightning-combobox>
+										<lightning-input type="text" name="address1" variant="label-inline" label="ADDRESS 1:" value={genericInputs.address1} required onchange={handleadd1Change} > </lightning-input>
+										<lightning-input type="text" name="address2" variant="label-inline" label="ADDRESS 2:" value={genericInputs.address2} onchange={handleadd2Change} > </lightning-input>
+										<lightning-input type="text" name="city" variant="label-inline" label="CITY:" value={genericInputs.city}  onchange={handleCityChange} required > </lightning-input>
+										<template if:true={showState}>
+										<lightning-combobox  name="state" variant="label-inline" label="STATE:" value={genericInputs.state} placeholder="Select State" options={stateOptions} onchange={handleStateChange} required>></lightning-combobox>
+										</template>
+										<lightning-input type="text" name="postalCode" variant="label-inline" label="POSTAL CODE:"  value={genericInputs.postalCode} onchange={handlePostalChange} required > </lightning-input>
+										
+												
+												<div>						
+												<b style="color:black">RECOGNITION NAME</b>
+				</div>
+				<lightning-input type="text" name="recognitionName" value={genericInputs.recognitionName}
+					onchange={handleChange} variant="label-inline"
+					label="ASH will recognize your contribution in various ways based on your donation amount. Please indicate how you would like to be recognized in the field below.">
+				</lightning-input>
+				</b>
+			</div>
+			</div>
+			<p slot="footer" class="slds-m-top_large slds-grid slds-grid_align-center slds-align–absolute-center">
+				<lightning-button variant="brand" label="Cancel" type="cancel" onclick={handleCancel}>
+				</lightning-button>
+
+				<lightning-button data-pageno="1" variant="destructive" label="Proceed For Review"
+					title="Primary action" class="slds-m-center_x-large" onclick={navigateNext}></lightning-button>
+
+			</p>
+
+		</lightning-card>
+
+	</template>
+	<template if:true={page2}>
+		<lightning-card title="DONATION SUMMARY">
+			<lightning-button label="Edit" slot="actions" onclick={handlePage2Edit}></lightning-button>
+			<template lwc:if={showErrorMessage}>
+				<div style="color:red">
+					{errorMessage}
+				</div>
+			</template>
+			<div class="slds-p-horizontal_small">
+				<div class="slds-box slds-theme_shade" style="font-weight: bold; background-color: #CCC; padding: 1em;">
+					Bill To</div>
+				<div>
+					{genericInputs.prefix}<br/>
+										{genericInputs.fName}&nbsp;{genericInputs.mName}&nbsp;{genericInputs.lName}<br/>
+										{genericInputs.address1}&nbsp;{genericInputs.address2}<br/>
+										{genericInputs.city},&nbsp;{genericInputs.state}&nbsp;{genericInputs.postalCode}<br/>
+										{genericInputs.Country}
+								</div>
+					<template if:true={isDedication}>
+						<div class="slds-box slds-theme_shade" style="font-weight: bold; background-color: #CCC;">
+							Dedication</div>
+						<div>
+							{tributelable} : {genericInputs.dedicationName}<br/>
+												Please notify:
+												{genericInputs.dedicationFName}<span if:true={genericInputs.dedicationmName}> {genericInputs.dedicationmName} </span>{genericInputs.dedicationlName}<br/>
+												{genericInputs.dedicationaddress1}&nbsp;{genericInputs.dedicationaddress2}<br/>
+												{genericInputs.dedicationcity},&nbsp;{genericInputs.dedicationstate}&nbsp;{genericInputs.dedicationpostalCode}<br/>
+												{genericInputs.dedicationCountry}<br/>
+												Comment:&nbsp;{genericInputs.dedicationMessage}
+										</div>
+					</template>
+					<div class="slds-box slds-theme_shade" style="font-weight: bold; background-color: #CCC;">Donor
+						Information</div>
+					<div>
+						Donor will be recognized as: {genericInputs.recognitionName}<br/>
+								</div>
+						<div class="slds-box slds-theme_shade" style="font-weight: bold; background-color: #CCC;">Donor
+							Designation</div>
+						<div>
+							<br>
+							<br>
+							<table>
+								<tr>
+									<th>ASH Fund</th>
+									<th>Amount</th>
+								</tr>
+								<template for:each={currencyInputs} for:item="item">
+									<tr key={item.Id}>
+										<td>{item.Label}</td>
+										<td>${item.Amount}</td>
+									</tr>
+								</template>
+								<tr>
+									<td>Total Amount</td>
+									<td>${AmountCap}</td>
+								</tr>
+							</table>
+						</div>
+						<br>
+						<br>
+							POLICY AGREEMENTS<br/>
+								The Controller of Personal Data collected at this Site is the American Society of Hematology. By clicking below you consent to the processing of your Personal Data for legitimate purposes associated with your ASH account. For more detailed information on the processing, use and sharing of your Personal Data and your choices please review our Privacy Policy linked below.
+						<div class="checkbox-container">
+							<lightning-input type="checkbox" name="ashPrivacyPolicy" label="I have read and agree to "
+								onchange={handleChange} required>
+							</lightning-input>
+							<div class="box">
+								<a href="https://www.hematology.org/about/privacy-policy?_ga=2.55502637.720444749.1709233661-1880470282.1709059633"
+									target="_blank" class="box">ASH's
+									Privacy Policy.</a>
+								<div class="details">
+									<div class="button-container">
+
+									</div>
+								</div>
+							</div>
+
+						</div>
+						<div class="checkbox-container">
+							<lightning-input type="checkbox" name="ashServiceTerms" label="I have read and agree to "
+								onchange={handleChange} required>
+							</lightning-input>
+							<div class="box">
+								<a href="https://www.hematology.org/about/terms-of-service?_ga=2.255870861.720444749.1709233661-1880470282.1709059633"
+									target="_blank" class="box">ASH's Term of Service.</a>
+								<div class="details">
+									<div class="button-container">
+
+									</div>
+								</div>
+							</div>
+
+						</div>
+					</div>
+					<p slot="footer">
+
+						<lightning-button data-pageno="2" variant="destructive" label="Proceed To Payment"
+							title="Proceed To Payment" class="slds-m-center_x-large" onclick={navigateNext}>
+						</lightning-button>
+					</p>
+		</lightning-card>
+	</template>
+	<template if:true={page3}>
+		<template lwc:if={ifShowUrl}>
+			<div style="text-align: center;">
+				<img src={loadingGifUrl} alt="Loading" class="loading-spinner" />
+        </div>
+		</template>
+		<iframe frameborder="" width="800" height="1050" src={fullUrl}></iframe>
+
+	</template>
+</template>

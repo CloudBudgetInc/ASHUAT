@@ -1,0 +1,184 @@
+<aura:component description="CBMassRecoveryTool" implements="lightning:actionOverride,lightning:isUrlAddressable,force:hasRecordId,force:hasSObjectName,force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId"
+				access="global" controller="CBMassRecoveryTool">
+	<ltng:require scripts="{!join(',',$Resource.cb4__JS_CONST, $Resource.cb4__JS_UTILS)}"
+				  afterScriptsLoaded="{!c.doInit}" />
+	<ltng:require scripts="{!join(',', $Resource.cb4__exceljs, $Resource.cb4__fileSaver)}" />
+
+	<aura:attribute name="showSpinner" type="Boolean" default="true" />
+	<aura:attribute name="showBackdrop" type="Boolean" default="false" />
+	<aura:attribute name="showWarning" type="Boolean" default="false" />
+	<aura:attribute name="showMapping" type="Boolean" default="false" />
+	<aura:attribute name="allowMappingEditing" type="Boolean" default="false" />
+	<aura:attribute name="budgets" type="cb4__CBTag__c[]" default="[]" description="CB Budget Templates"/>
+	<aura:attribute name="budgetLines" type="cb4__CBTag__c[]" default="[]" description="CB Budget Lines"/>
+	<aura:attribute name="budgetSubLines" type="cb4__CBTag__c[]" default="[]" description="CB Budget SubLines"/>
+	<aura:attribute name="loadedBudgets" type="cb4__CBTag__c[]" default="[]" description="CB Budget Templates"/>
+	<aura:attribute name="loadedBudgetLines" type="cb4__CBTag__c[]" default="[]" description="CB Budget Lines"/>
+	<aura:attribute name="loadedBudgetSubLines" type="cb4__CBTag__c[]" default="[]" description="CB Budget SubLines"/>
+	<aura:attribute name="bIds" type="List" default="[]" description="Budget Template Ids"/>
+	<aura:attribute name="selectedExcelBudgetYear" type="String" description="Budget Year Id"/>
+	<aura:attribute name="selectedUsersBudgetYear" type="String" description="Budget Year Id"/>
+
+	<aura:attribute name="budgetYearName" type="String" description="Budget Year name from user's Context"/>
+	<aura:attribute name="excelBudgetYearName" type="String" description="Budget Year name from Excel"/>
+	<aura:attribute name="budgetYearSO" type="cb4.CBSO[]" description="Budget Years SO"/>
+	<aura:attribute name="budgetYearPeriodSO" type="cb4.CBSO[]" description="BY Periods SO"/>
+	<aura:attribute name="excelPeriodSO" type="cb4.CBSO[]" description="Excel Periods SO"/>
+	<aura:attribute name="mObject" type="Object" description="Id to Id mapping"/>
+	<aura:attribute name="step" type="Integer" default="0" description="Process Step"/>
+	<aura:attribute name="processName" type="List" default="['Start Full Restore','Delete current year Budget Data','Create Budgets','Create Budget Lines','Create Budget SubLines']" description="Process Step Names"/>
+	<aura:attribute name="uploadedBudgets" type="Integer" default="0" description="Data Counter"/>
+	<aura:attribute name="uploadedBudgetLines" type="Integer" default="0" description="Data Counter"/>
+	<aura:attribute name="uploadedBudgetSubLines" type="Integer" default="0" description="Data Counter"/>
+
+	<div class="slds-page-header slds-m-bottom_medium">
+		<div class="slds-page-header__row">
+			<div class="slds-page-header__col-title">
+				<div class="slds-media">
+					<div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-calibration" title="Recovery Tool"
+							  style="background-color: #699be1 !important;">
+                            <lightning:icon iconName="standard:change_request" alternativeText="Recovery Tool" />
+                        </span>
+					</div>
+					<div class="slds-media__body">
+						<div class="slds-page-header__name">
+							<div class="slds-page-header__name-title">
+								<h1>
+									<span class="slds-page-header__title slds-truncate" title="Recovery Tool">Recovery Tool</span>
+								</h1>
+								<div class="slds-text-body_small"
+									 style="min-width: 250px; max-width: 400px;">
+									Budget Year : <b>{!v.budgetYearName}</b><br/>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="{!if(v.showMapping, 'slds-grid', 'slds-hide')}">
+				<div class="slds-p-right_small">
+					<b>Process Status (Database)</b> <br/>
+					Budget Year : <b>{!v.budgets[0].cb4__Tag3Name__c}</b><br/>
+					Total Budgets : <b>{!v.budgets.length}</b> <br/>
+					Total Budget Lines : <b>{!v.budgetLines.length}</b> <br/>
+					Total Budget SubLines : <b>{!v.budgetSubLines.length}</b> <br/>
+				</div>
+				<div class="{!if(or(v.loadedBudgets.length > 0, v.loadedBudgetLines.length > 0, v.loadedBudgetSubLines.length > 0), 'slds-p-left_small slds-p-right_small', 'slds-hide')}" style="border-left: 2px solid lightblue;">
+					<b>Process Status (Excel)</b> <br/>
+					Loaded Budget Year : <b>{!v.excelBudgetYearName}</b><br/>
+					Loaded Budgets : <b>{!v.loadedBudgets.length}</b> <br/>
+					Loaded Budget Lines : <b>{!v.loadedBudgetLines.length}</b> <br/>
+					Loaded Budget SubLines : <b>{!v.loadedBudgetSubLines.length}</b> <br/>
+				</div>
+				<div class="{!if(or(v.loadedBudgets.length > 0, v.loadedBudgetLines.length > 0, v.loadedBudgetSubLines.length > 0), 'slds-p-left_small', 'slds-hide')}" style="border-left: 2px solid lightblue;">
+					<b>Upload Status (Uploaded/Excel)</b> <br/>
+					Uploaded Budget Year : <b>{!v.excelBudgetYearName}</b><br/>
+					Uploaded Budgets : <b>{!v.uploadedBudgets + '/' + v.loadedBudgets.length}</b> <br/>
+					Uploaded Budget Lines : <b>{!v.uploadedBudgetLines + '/' + v.loadedBudgetLines.length}</b> <br/>
+					Uploaded Budget SubLines : <b>{!v.uploadedBudgetSubLines + '/' + v.loadedBudgetSubLines.length}</b> <br/>
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<div class="slds-grid slds-card slds-p-around_medium">
+		<div class="{!if(v.showMapping, 'slds-hide', 'slds-p-right_small')}">
+			<b>Process Status (Database)</b> <br/>
+			Budget Year : <b>{!v.budgets[0].cb4__Tag3Name__c}</b><br/>
+			Total Budgets : <b>{!v.budgets.length}</b> <br/>
+			Total Budget Lines : <b>{!v.budgetLines.length}</b> <br/>
+			Total Budget SubLines : <b>{!v.budgetSubLines.length}</b> <br/>
+		</div>
+		<div class="{!if(and(!v.showMapping,or( v.loadedBudgets.length > 0, v.loadedBudgetLines.length > 0, v.loadedBudgetSubLines.length > 0)), 'slds-p-left_small slds-p-right_small', 'slds-hide')}" style="border-left: 2px solid lightblue;">
+			<b>Process Status (Excel)</b> <br/>
+			Loaded Budget Year : <b>{!v.excelBudgetYearName}</b><br/>
+			Loaded Budgets : <b>{!v.loadedBudgets.length}</b> <br/>
+			Loaded Budget Lines : <b>{!v.loadedBudgetLines.length}</b> <br/>
+			Loaded Budget SubLines : <b>{!v.loadedBudgetSubLines.length}</b> <br/>
+		</div>
+		<div class="{!if(and(!v.showMapping,or( v.loadedBudgets.length > 0, v.loadedBudgetLines.length > 0, v.loadedBudgetSubLines.length > 0)), 'slds-p-left_small', 'slds-hide')}" style="border-left: 2px solid lightblue;">
+			<b>Upload Status (Uploaded/Excel)</b> <br/>
+			Uploaded Budget Year : <b>{!v.excelBudgetYearName}</b><br/>
+			Uploaded Budgets : <b>{!v.uploadedBudgets + '/' + v.loadedBudgets.length}</b> <br/>
+			Uploaded Budget Lines : <b>{!v.uploadedBudgetLines + '/' + v.loadedBudgetLines.length}</b> <br/>
+			Uploaded Budget SubLines : <b>{!v.uploadedBudgetSubLines + '/' + v.loadedBudgetSubLines.length}</b> <br/>
+		</div>
+		<div class="{!if(v.showMapping, 'slds-grid_vertical slds-size_1-of-1', 'slds-hide')}">
+			<div class="slds-modal__header slds-size_1-of-1">
+				<h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Mapping Settings</h1>
+			</div>
+			<div class="slds-grid slds-size_1-of-2 slds-text-align_center slds-grid_vertical-align-center">
+				<div class="slds-grid slds-size_1-of-3"><p class="slds-size_1-of-1"><b>Field Name</b></p></div>
+				<div class="slds-grid slds-size_1-of-3"><p class="slds-size_1-of-1"><b>Excel Data</b></p></div>
+				<div class="slds-grid slds-size_1-of-3"><p class="slds-size_1-of-1"><b>Mapping Data</b></p></div>
+			</div>
+			<div class="slds-grid slds-size_1-of-2 slds-grid_vertical-align-center">
+				<div class="slds-size_1-of-3"><p><b>Budget Year:</b></p></div>
+				<div class="slds-p-right_small slds-p-bottom_small slds-size_1-of-3">
+					<lightning:select name="Budget Year" label="Budget Year" disabled="true" variant="label-hidden" value="{!v.selectedExcelBudgetYear}">
+						<aura:iteration items="{!v.budgetYearSO}" var="option">
+							<option value="{!option.value}" text="{!option.title}"
+									selected="{!v.selectedExcelBudgetYear == option.value}" />
+						</aura:iteration>
+					</lightning:select>
+				</div>
+				<div class="slds-p-left_small slds-p-bottom_small slds-size_1-of-3">
+					<lightning:select name="Budget Year" label="Budget Year" disabled="{!!v.allowMappingEditing}" variant="label-hidden" value="{!v.selectedUsersBudgetYear}">
+						<aura:iteration items="{!v.budgetYearSO}" var="option">
+							<option value="{!option.value}" text="{!option.title}"
+									selected="{!v.selectedUsersBudgetYear == option.value}" />
+						</aura:iteration>
+					</lightning:select>
+				</div>
+			</div>
+			<!--<aura:iteration items="{!v.excelPeriodSO}" var="period" indexVar="i">
+				<div class="slds-grid slds-size_1-of-2 slds-grid_vertical-align-center">
+					<div class="slds-size_1-of-3"><p><b>Period:</b></p></div>
+					<div class="slds-p-right_small slds-p-bottom_small slds-size_1-of-3">
+						<lightning:select name="Period" label="Period" disabled="true" variant="label-hidden">
+							<aura:iteration items="{!v.excelPeriodSO}" var="option">
+								<option value="{!option.value}" text="{!option.title}"/>
+							</aura:iteration>
+						</lightning:select>
+					</div>
+					<div class="slds-p-left_small slds-p-bottom_small slds-size_1-of-3">
+						<lightning:select name="Period" label="Period" variant="label-hidden" onchange="{!c.debug}">
+							<aura:iteration items="{!v.budgetYearPeriodSO}" var="option">
+								<option value="{!option.value}" text="{!option.title}"/>
+							</aura:iteration>
+						</lightning:select>
+					</div>
+				</div>
+			</aura:iteration>-->
+		</div>
+	</div>
+
+	<div class="slds-card slds-p-around_medium slds-align-middle slds-grid">
+		<lightning:buttonIcon iconName="utility:download" variant="brand" alternativeText="Download" onclick="{!c.downloadExcel}" title="Download" value="Download" class="cb-margin-top_3px"/>
+		<lightning:input type="file" variant="label-hidden" class="slds-m-left_small" label="Upload" multiple="false" accept=".xls, .xlsx" onchange="{!c.handleFileChange}" />
+		<lightning:button variant="brand" class="{!if(or(v.loadedBudgets.length > 0, v.loadedBudgetLines.length > 0, v.loadedBudgetSubLines.length > 0),'slds-m-left_small', 'slds-hide')}" label="{!if(v.step == 0, v.processName[0], if(v.step == 1, v.processName[1], if(v.step == 2,v.processName[2], if(v.step == 3, v.processName[3], v.processName[4]))))}" onclick="{!if(v.step == 0, c.showWarningModal, if(v.step == 1, c.deleteCurrentYearBudgetData, if(v.step == 2,c.createBudgets, if(v.step == 3, c.createBudgetLines, c.createBudgetSubLines))))}"/>
+	</div>
+
+	<section role="dialog" tabindex="-1" aria-modal="true" aria-labelledby="modal-heading-01" class="{!if(v.showWarning, 'slds-modal slds-fade-in-open', 'slds-modal')}">
+		<div class="slds-modal__container">
+			<lightning:buttonIcon iconName="utility:close" variant="bare-inverse" alternativeText="Cancel and close" onclick="{!c.hideModals}" class="slds-modal__close"/>
+			<div class="slds-modal__header">
+				<h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Note</h1>
+			</div>
+			<div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+				<p>It is recommended to download a backup Excel file before performing any actions.</p>
+			</div>
+			<div class="slds-modal__footer">
+				<button class="slds-button slds-button_neutral" aria-label="Cancel and close" onclick="{!c.hideModals}">Cancel</button>
+				<button class="slds-button slds-button_brand" onclick="{!c.downloadExcel}">Download Excel</button>
+				<button class="slds-button slds-button_brand" onclick="{!c.showMappingModal}">Continue</button>
+			</div>
+		</div>
+	</section>
+
+	<c:cbSpinner class="cb-spinner" show="{!v.showSpinner}"/>
+	<div class="{!if(v.showBackdrop, 'slds-backdrop slds-backdrop_open cb-spinner', 'slds-backdrop')}"></div>
+</aura:component>

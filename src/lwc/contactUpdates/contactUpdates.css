@@ -1,0 +1,68 @@
+/* Adjusts whole table */
+
+.ASH {
+font-size: 16px;
+width: 80%;
+margin: auto;
+
+
+}
+
+.slds-form-element__icon {
+    visibility: hidden !important;
+}
+
+.title {
+    font-size: 36px !important;
+    color: #212529;
+    text-align: center;
+    font-weight: bolder;
+    margin-bottom:20px; 
+}
+.subscribe {
+    font-size: 16px !important;
+    color: #212529;
+    text-align: center;
+    font-weight: bolder;
+}
+.eee{
+
+background-color: #eeeeee;
+}
+.dark {
+    background-color: #36454f;
+    font-size: 2rem;
+    color: white;
+    
+}
+.ccc {
+    background-color:  #cccccc;
+    color: black;
+    font-size: 2rem;
+    padding: 10px 10px 10px 10px !important;
+  
+}
+.ASHtd{
+    background-color: #eceef1;
+    color: black;
+    padding: 10px 10px 10px 10px !important;
+   
+}
+ .checkBox{
+    text-align: center;
+    zoom: 200%;
+} 
+
+.checkBox2{
+    zoom: 200%;
+} 
+
+.unsubscribe{
+
+    font-size: 16px;
+
+}
+.slds-button__icon {
+ display: none !important;
+
+}

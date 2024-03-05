@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Package xmlns="http://soap.sforce.com/2006/04/metadata">
     <types>
-        <members>AccountAPI</members>
         <members>AcctHistBatchLoader</members>
         <members>AcctHistBatchLoaderTest</members>
         <members>AcctHistPivoterBatch</members>
@@ -17,6 +16,8 @@
         <members>BalanceImportBatchLoaderTest</members>
         <members>BalanceJournalsBatch</members>
         <members>BalanceJournalsBatchTest</members>
+        <members>BankMatcherInvokable</members>
+        <members>BankMatcherInvokableTest</members>
         <members>BankStatementTriggerTest</members>
         <members>BudgetDetailImportBatchLoader</members>
         <members>BudgetDetailImportBatchLoaderTest</members>
@@ -35,14 +36,16 @@
         <members>CBBudgetReportingBalanceUpdateSchedule</members>
         <members>CBDeleteBudgetFFRBJob</members>
         <members>CBExcelReport</members>
+        <members>CBExcelReportTest</members>
+        <members>CBMassRecoveryTool</members>
         <members>CBStartPersonnelBudgetDataDeletion</members>
         <members>CBStartPersonnelBudgetDataGeneration</members>
         <members>CBTestLocal</members>
         <members>CTNMapController</members>
         <members>CTNMapControllerTest</members>
+        <members>CashEntryPoster</members>
         <members>ChangePasswordController</members>
         <members>ChangePasswordControllerTest</members>
-        <members>CodeErrorHandler</members>
         <members>ComboRuleProvider</members>
         <members>ComboRuleProviderTest</members>
         <members>CommitteeListSearchController</members>
@@ -76,6 +79,8 @@
         <members>ConcurValidateInvoiceBatch</members>
         <members>ConcurValidatorInvokableHelper</members>
         <members>ConcurValidatorInvokableHelperTest</members>
+        <members>ContactTriggerHandler</members>
+        <members>ContactTriggerHandlerTest</members>
         <members>CurrentUserController</members>
         <members>CurrentUserControllerTest</members>
         <members>CustomASHRCDirectoryController</members>
@@ -126,16 +131,14 @@
         <members>ExampleCalloutMock</members>
         <members>FfaDataProvider</members>
         <members>FfaDataProviderTest</members>
+        <members>FinReviewController</members>
+        <members>FinReviewControllerTest</members>
         <members>FiscalYearFinder</members>
         <members>FiscalYearFinderTest</members>
         <members>FlushProxiesBatch</members>
         <members>FlushProxiesBatchTest</members>
         <members>ForgotPasswordController</members>
         <members>ForgotPasswordControllerTest</members>
-        <members>GAUAllocationTriggerHandler</members>
-        <members>GAUAllocationTriggerHelper</members>
-        <members>GAUAllocationTriggerProducts</members>
-        <members>GAUOpportunityProduct</members>
         <members>GeneralLedgerTransactionBatchLoader</members>
         <members>GeneralLedgerTransactionBatchLoaderTest</members>
         <members>JournalLineItemTriggerTest</members>
@@ -155,6 +158,12 @@
         <members>JournalizePrepaidReclassInvoker</members>
         <members>JournalizePrepaidReclassInvokerTest</members>
         <members>JournalizePrepaidReclassTest</members>
+        <members>LightningForgotPasswordController</members>
+        <members>LightningForgotPasswordControllerTest</members>
+        <members>LightningLoginFormController</members>
+        <members>LightningLoginFormControllerTest</members>
+        <members>LightningSelfRegisterController</members>
+        <members>LightningSelfRegisterControllerTest</members>
         <members>ManagedContentController</members>
         <members>ManagedContentControllerTest</members>
         <members>MicrobatchSelfRegController</members>
@@ -173,8 +182,8 @@
         <members>MyProfilePageControllerTest</members>
         <members>OpeningBalanceBatchLoader</members>
         <members>OpeningBalanceBatchLoaderTest</members>
-        <members>OpportunityTriggerHandler</members>
-        <members>OpportunityTriggerHelper</members>
+        <members>OpportunityService</members>
+        <members>OpportunityService_Test</members>
         <members>PayableImageFixerBatch</members>
         <members>PayableImageFixerBatchTest</members>
         <members>PayableImageFixerInvokableHelper</members>
@@ -191,6 +200,8 @@
         <members>PayableJournalFixerScheduledTest</members>
         <members>PersonifyCashBatchLoader</members>
         <members>PersonifyCashBatchLoaderTest</members>
+        <members>PersonifyReconcilerController</members>
+        <members>PersonifyReconcilerControllerTest</members>
         <members>PersonifyTransJournalBatchLoaderTest</members>
         <members>PersonifyTransactionJournalBatchLoader</members>
         <members>PersonifyTriggerTest</members>
@@ -199,8 +210,12 @@
         <members>PersonnelBudgetFlushStagers</members>
         <members>PersonnelBudgetFlushStagersTest</members>
         <members>PersonnelBudgetProcessBatch</members>
+        <members>PersonnelBudgetProcessBatchInvokable</members>
+        <members>PersonnelBudgetProcessBatchInvokableTest</members>
         <members>PersonnelBudgetProcessBatchTest</members>
         <members>PersonnelBudgetStageBatch</members>
+        <members>PersonnelBudgetStageBatchInvokable</members>
+        <members>PersonnelBudgetStageBatchInvokableTest</members>
         <members>PersonnelBudgetStageBatchTest</members>
         <members>PrepAnalyticsInvokable</members>
         <members>PrepAnalyticsInvokableTest</members>
@@ -249,6 +264,10 @@
         <members>ReportingBalancePrepBatchTest</members>
         <members>ReportingBalanceUpdateBatch</members>
         <members>ReportingBalanceUpdateBatchTest</members>
+        <members>RevalidateJournalsInvokable</members>
+        <members>RevalidateJournalsInvokableTest</members>
+        <members>SFMCConnector</members>
+        <members>SFMCConnectorTest</members>
         <members>SetFileVisabilityTest</members>
         <members>SiteLoginController</members>
         <members>SiteLoginControllerTest</members>
@@ -266,6 +285,12 @@
         <members>SummarizePeriodInvokableTest</members>
         <members>SummarizeYearInvokable</members>
         <members>SummarizeYearInvokableTest</members>
+        <members>TransactionDetailsController</members>
+        <members>TransactionDetailsControllerTest</members>
+        <members>ValidateJournalUploadInvokable</members>
+        <members>ValidateJournalUploadInvokableTest</members>
+        <members>ValidatePayableInvoiceUploadInvokable</members>
+        <members>ValidatePayableUploadInvokableTest</members>
         <members>VeevaAddressTriggerTest</members>
         <members>VeevaCTNTriggerTest</members>
         <members>VeevaCalloutClass</members>
@@ -286,6 +311,8 @@
         <members>Vendor1099ResetBatchTest</members>
         <members>VendorBalanceInvokable</members>
         <members>VendorBalanceInvokableTest</members>
+        <members>VendorBalanceRecInvokable</members>
+        <members>VendorBalanceRecInvokableTest</members>
         <members>VendorCodeHandler</members>
         <members>VendorCodeHandlerTest</members>
         <members>VendorImportBatch</members>
@@ -295,16 +322,32 @@
         <members>VendorTriggerTest</members>
         <members>VoucherImportBatch</members>
         <members>VoucherImportBatchTest</members>
-        <members>ashAsperatoWebRefundScheduler</members>
         <members>ashCashEntryCancellationService</members>
+        <members>ashCashEntryCancellationServiceTest</members>
+        <members>ashCashEntryCreation</members>
+        <members>ashCashEntryCreationTest</members>
+        <members>ashCashEntryPosting</members>
+        <members>ashCashEntryPostingTest</members>
+        <members>ashCashMatchingService</members>
+        <members>ashCashMatchingServiceTest</members>
+        <members>ashCetiniaPostingService</members>
+        <members>ashEmailSenderQueueable</members>
+        <members>ashEmailSenderQueueableTest</members>
         <members>ashOpportunityHandler</members>
+        <members>ashOpportunityHandlerTest</members>
         <members>ashOpportunityInvoiceHandler</members>
-        <members>ashPaymentIncoiveSyncJob</members>
-        <members>ashPaymentIncoiveSyncJob_List_Print</members>
+        <members>ashOpportunityInvoiceHandlerTest</members>
+        <members>ashOpportunityLineItemCreator</members>
+        <members>ashOpportunityLineItemCreatorTest</members>
         <members>ashRefundCreationService</members>
+        <members>ashRefundCreationServiceTest</members>
         <members>ashSCRconvertQueueable</members>
+        <members>ashSCRconvertQueueableTest</members>
         <members>ashSCRpostMatchQueueable</members>
+        <members>ashSCRpostMatchQueueableTest</members>
         <members>ashSetCompanyQueueable</members>
+        <members>ashSetCompanyQueueableTest</members>
+        <members>ashWebDonationFollowupSync</members>
         <members>dlrs_AttachmentTest</members>
         <members>dlrs_AttributeTest</members>
         <members>dlrs_CampaignTest</members>
@@ -345,6 +388,7 @@
         <members>StdExceptionTemplate</members>
         <members>TFGEBankReconciliation</members>
         <members>TableauReport</members>
+        <members>TransactionDetails</members>
         <members>Unauthorized</members>
         <members>UnderConstruction</members>
         <name>ApexPage</name>
@@ -353,12 +397,10 @@
         <members>BAIFileUploadTrigger</members>
         <members>BankStatementTrigger</members>
         <members>CBBudgetLineCodeGen</members>
-        <members>GAUAllocationTrigger</members>
+        <members>ContactTrigger</members>
         <members>JournalLineItemTrigger</members>
         <members>JournalTrigger</members>
         <members>JournalUploadTrigger</members>
-        <members>OpportunityTrigger</members>
-        <members>OpptyTrigger</members>
         <members>PayableInvoiceUploadTrigger</members>
         <members>PersonifyTransactionTrigger</members>
         <members>ReconciliationTrigger</members>
@@ -383,8 +425,8 @@
         <members>CBBudgetLineComponent</members>
         <members>CBBudgetReportGenerator</members>
         <members>CBBudgetSummary</members>
-        <members>CBExcelReportGeneartor</members>
         <members>CBHomeControllerLocal</members>
+        <members>CBMassRecoveryTool</members>
         <members>CommitteeList</members>
         <members>CommitteeListLoaded</members>
         <members>CommitteeListResults</members>
@@ -473,40 +515,69 @@
         <members>Refresh</members>
         <members>SponsorshipCityList</members>
         <members>SponsorshipForm</members>
+        <members>WebSiteDonation</members>
         <members>YouTubePlayer</members>
+        <members>forgotPassword</members>
+        <members>loginForm</members>
         <members>selectedsObjectRecordEvent</members>
+        <members>selfRegister</members>
+        <members>setExpId</members>
+        <members>setStartUrl</members>
         <name>AuraDefinitionBundle</name>
     </types>
     <types>
+        <members>balanceSheetInteractive</members>
         <members>cbReportingExcel</members>
         <members>cbSpinner</members>
         <members>cbUtils</members>
+        <members>contactUpdates</members>
         <members>customCommitteeMemberList</members>
         <members>customCommitteeMemberSearch</members>
         <members>customContactSearch</members>
         <members>customEPRelatedTasks</members>
         <members>customUserProfilePhoto</members>
+        <members>donationGuestPage</members>
         <members>embeddedSigning</members>
         <members>inputRichTextFSC</members>
         <members>manualMatcher</members>
+        <members>manualMatcherCombined</members>
+        <members>personifyManualMatcher</members>
         <members>richTextArea</members>
+        <members>useITI</members>
         <name>LightningComponentBundle</name>
     </types>
     <types>
+        <members>ASHLogo</members>
         <members>ASHRC_RWE_Timeline_March2023</members>
         <members>ASH_RC_TM_Logo</members>
+        <members>Ash_Loading_Gif</members>
+        <members>BootStrapforWebsite</members>
         <members>CTNMapBackgroundImage</members>
         <members>CTNMapIcon</members>
         <members>CTNMapMarker</members>
+        <members>DonationsWebCSS</members>
         <members>MapSearchIcon</members>
         <members>SNA_ASH_RC_Website1_sf_cdn_e7DaN</members>
+        <members>SNA_HTMLASH1_sf_default_cdn_DGZIH</members>
         <members>SNA_My_ASH1_sf_edge_pDlF4</members>
+        <members>SNA_Web_Donation_POC1_sf_default_cdn_c9K8N</members>
+        <members>SNA_Website_Donation_POC1_sf_default_cdn_Hw23G</members>
+        <members>SNA_Website_Donation_POC1_sf_default_cdn_UlH1G</members>
         <members>SiteSamples</members>
         <members>YouTubeJS</members>
         <members>YouTubeJSWidget</members>
+        <members>balanceSheetInteractiveCSS</members>
+        <members>cloudIconLogo</members>
         <members>customCommitteeMemberListStyle</members>
+        <members>democss</members>
+        <members>dotIconLogo</members>
         <members>exceljs</members>
         <members>favicon</members>
+        <members>flags</members>
+        <members>intlTellinputcss</members>
+        <members>intlTellinputjs</members>
+        <members>shareIconLogo</members>
+        <members>utils</members>
         <members>writeExcel</members>
         <name>StaticResource</name>
     </types>

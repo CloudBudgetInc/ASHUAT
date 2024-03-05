@@ -30,6 +30,7 @@ public with sharing class CustomSubcriptionCenterController {
 
 	@AuraEnabled 
 	public static Contact subscribeAll(Boolean subscribe) {
+		Boolean isSandbox = [SELECT Id, Name, IsSandbox FROM Organization].IsSandbox;
 		User user = [SELECT Id, ContactId FROM User WHERE Id =: UserInfo.getUserId()];
 		
 		if (user.ContactId == null) {
@@ -67,7 +68,23 @@ public with sharing class CustomSubcriptionCenterController {
 			contact.FDA_Alerts__c = subscribe;
 			contact.Email_Subscriptions_Last_Updated_Date__c = System.now();
 
-			update contact;
+			// update contact;
+			Database.SaveResult sr = Database.update(contact);
+            if (sr.isSuccess()) {
+                // Operation was successful, so get the ID of the record that was processed and sync update in SFMC.
+                System.debug('Successfully updated Contact record with ID: ' + sr.getId());
+				if(!isSandbox && !Test.isRunningTest()){
+					SFMCConnector.updateSubscriberPreference(sr.getId(), subscribe);
+				}
+            } else {
+                // Operation failed, so get all errors 
+                for(Database.Error err : sr.getErrors()) {
+                    System.debug('The following error has occurred.');                    
+                    System.debug(err.getStatusCode() + ': ' + err.getMessage());
+                    System.debug('Contract fields that affected this error: ' + err.getFields());
+                }
+            }
+
 		} catch (DmlException e) {
 			System.debug('An unexpected error has occurred: ' + e.getMessage());
 		}

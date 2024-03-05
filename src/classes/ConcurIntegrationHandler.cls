@@ -10,7 +10,9 @@ public class ConcurIntegrationHandler {
         
         Http http = new Http();
         HttpRequest vendorCreationRequest = new HttpRequest();
-        String vendorEndpoint = 'https://us.api.concursolutions.com/api/v3.0/invoice/vendors';
+		// Concur’s Vendor API version 3.0 was deprecated on 02/01/2023 and decommissioned on 11/30/2023
+        //String vendorEndpoint = 'https://us.api.concursolutions.com/api/v3.0/invoice/vendors';
+        String vendorEndpoint = 'https://us.api.concursolutions.com/api/v3.1/invoice/vendors';
         vendorCreationRequest.setEndpoint(vendorEndpoint);
         vendorCreationRequest.setHeader('Content-Type', 'application/json');
         vendorCreationRequest.setHeader('Authorization', 'Bearer ' + getAccessToken());
@@ -48,12 +50,10 @@ public class ConcurIntegrationHandler {
         if (someResponse.getStatusCode() != 200) {
             System.debug('The status code returned was not expected: ' +
                 someResponse.getStatusCode() + ' ' + someResponse.getStatus());
-            	//sendFailureEmail(target.Vendor_ID__c, result);
         }
         else {
             System.debug(someResponse.getStatusCode());
-            System.debug('Worked');
-            //sendSuccessEmail(target.Vendor_ID__c, result);    
+            System.debug('Vendor push to Concur successful.');
         }      
     }
     
@@ -67,8 +67,8 @@ public class ConcurIntegrationHandler {
 
         String clientId = 'e8705374-2cc9-43ae-a71c-e3d2af1c21e0';
         String clientSecret = '19e6ec5a-cbd2-4802-aef6-5103e024e3b3';
-        String username= 'wsadminPROD@hematology.org';
-        String password= 'T<!~h[D7JK[A8"[V';
+        String username = 'wsadminPROD@hematology.org';
+        String password = 'T<!~h[D7JK[A8"[V';
 
         request.setHeader('Content-Type', 'application/x-www-form-urlencoded');
         String payload = 'client_id='+EncodingUtil.urlEncode(clientId,'UTF-8')+

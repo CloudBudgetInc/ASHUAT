@@ -1,0 +1,21 @@
+.dummyClass{color:black;}
+.disable-container{
+    border: 1px solid red;
+}
+
+.slds-input {
+		width: 100%;
+	}
+
+	
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.slds-grid {
+			display: block;
+		}
+
+		.slds-size_1-of-3, .slds-size_2-of-3 {
+			width: 100%;
+		}
+	}

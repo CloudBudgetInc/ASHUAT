@@ -1665,7 +1665,7 @@
 			if (displaySet.approvedby) gridColumns.push({
 				type: 'text',
 				fieldName: 'approvedby',
-				label: 'Approved By',
+				label: 'Last Approved/Rejected By',
 			});
 			if (displaySet.nextapprover) gridColumns.push({
 				type: 'text',
@@ -2005,17 +2005,17 @@
 			}
 		}
 		_CBRequest(
-		cmp,
-		'c.deleteRowsServer',
-		{
-			'appId': cmp.get('v.app.Id'),
-		    'rows' : rowsToDelete
-		},
-		null,
-		callback,
-		'Budget Line deleted',
-		'Failed to delete Budget Line',
-		false
+			cmp,
+			'c.deleteRowsServer',
+			{
+				'appId': cmp.get('v.app.Id'),
+				'rows' : rowsToDelete
+			},
+			null,
+			callback,
+			'Budget Line deleted',
+			'Failed to delete Budget Line',
+			false
 		);
 	},
 
@@ -2213,16 +2213,16 @@
 			}
 		}
 		_CBRequest(
-		cmp,
-		'c.getSubLinesServer',
-		{
-		    'budgetId' : cmp.get('v.app.Id')
-		},
-		null,
-		callback,
-		null,
-		'Failed to get data for Excel export',
-		false
+			cmp,
+			'c.getSubLinesServer',
+			{
+				'budgetId' : cmp.get('v.app.Id')
+			},
+			null,
+			callback,
+			null,
+			'Failed to get data for Excel export',
+			false
 		);
 	},
 
@@ -2327,22 +2327,22 @@
 			// data
 			let income = cmp.get('v.incomeSubLines');
 			let expense = cmp.get('v.expenseSubLines');
-            let template = cmp.get("v.template");
+			let template = cmp.get("v.template");
 			if (template.cb4__Boolean2__c && income.length === 0) income = this.helpAddEmptyLines(cmp, income, 'income');
 			if (template.cb4__Boolean3__c && expense.length === 0) expense = this.helpAddEmptyLines(cmp, expense, 'expense');
 			let tableHeaders = cmp.get("v.headers");
 			// data
 
 			let workbook = new ExcelJS.Workbook();
-			let sheetName = cmp.get('v.app.cb4__TagLabel__c');       
-            
+			let sheetName = cmp.get('v.app.cb4__TagLabel__c');
+
 			let worksheet = workbook.addWorksheet('Budget', {
 				views: [
 					{state: 'frozen', ySplit: 1, xSplit: 0}
 				],
 				properties: {showGridLines: true}
 			});
-            
+
 			// TABLE COLUMNS
 			let columns = [];
 			columns.push({header: 'Type', key: 'type', width: 8});// 1
@@ -2354,17 +2354,17 @@
 			if (d8Name != null) columns.push({header: d8Name, key: 'd8', width: 23}); //6?
 			if (d9Name != null) columns.push({header: d9Name, key: 'd9', width: 23}); //7?
 			if (d10Name != null) columns.push({header: d10Name, key: 'd10', width: 23}); //8?
-/*
-			if (text6 != null) columns.push({header: text6, key: 'txt6', width: 23}); //9?
-			if (text7 != null) columns.push({header: text7, key: 'txt7', width: 23}); //10?
-			if (text8 != null) columns.push({header: text8, key: 'txt8', width: 23}); //11?
-			if (text9 != null) columns.push({header: text9, key: 'txt9', width: 23}); //12?
+			/*
+						if (text6 != null) columns.push({header: text6, key: 'txt6', width: 23}); //9?
+						if (text7 != null) columns.push({header: text7, key: 'txt7', width: 23}); //10?
+						if (text8 != null) columns.push({header: text8, key: 'txt8', width: 23}); //11?
+						if (text9 != null) columns.push({header: text9, key: 'txt9', width: 23}); //12?
 
-			if (decimal6 != null) columns.push({header: decimal6, key: 'dec6', width: 23}); //13?
-			if (decimal7 != null) columns.push({header: decimal7, key: 'dec7', width: 23}); //14?
-			if (decimal8 != null) columns.push({header: decimal8, key: 'dec8', width: 23}); //15?
-			if (decimal9 != null) columns.push({header: decimal9, key: 'dec9', width: 23}); //16?
-			if (decimal10 != null) columns.push({header: decimal10, key: 'dec10', width: 23}); //17?*/
+						if (decimal6 != null) columns.push({header: decimal6, key: 'dec6', width: 23}); //13?
+						if (decimal7 != null) columns.push({header: decimal7, key: 'dec7', width: 23}); //14?
+						if (decimal8 != null) columns.push({header: decimal8, key: 'dec8', width: 23}); //15?
+						if (decimal9 != null) columns.push({header: decimal9, key: 'dec9', width: 23}); //16?
+						if (decimal10 != null) columns.push({header: decimal10, key: 'dec10', width: 23}); //17?*/
 
 			//columns.push({header: '#', key: 'idx', width: 3}); // index column (can be 5th up to 10th)
 			let numberOfColumns = 0;// number of value columns (4-12)
@@ -2407,11 +2407,11 @@
 			// COLUMNS CALCULATIONS
 
 			// TABLE ROWS
-			
+
 			let k=1;//row number ; starts from 2 (k==1 for Header row)
 			function fillExcelLines(type, lines, fillStyle, accountSO) {
-                	if (lines.length > 0) lines.forEach(function (line) { // line  - is a Budget App line
-                    k++ ;   
+				if (lines.length > 0) lines.forEach(function (line) { // line  - is a Budget App line
+					k++ ;
 					let r = {}; // one row
 
 					r['type'] = type; // the first column
@@ -2449,11 +2449,11 @@
 						allowBlank: false,
 						formulae: [accountSO] //=Service!$A$1:$A$18  A if Income and B if Expense
 					};*/
-                    worksheet.getRow(k).getCell('acc').dataValidation = {
+					worksheet.getRow(k).getCell('acc').dataValidation = {
 						type: 'list',
 						allowBlank: false,
 						formulae: [accountSO]
-					}                    
+					}
 					//let dimIdx = 5;
 					if (d6Name != null && d6SO.length > 0) worksheet.getRow(k).getCell('d6').dataValidation = {
 						type: 'list',
@@ -2484,14 +2484,14 @@
 						cell.fill = fillStyle;
 						cell.border = exStyle.simpleBorders;
 						cell.font = line['styleClass'] === 'calcRule' ? {color: {argb: "7c7c7c"}} : {color: {argb: "101312"}};
-					});     
+					});
 				});
 			}
-            
-           
+
+
 			fillExcelLines('Income', income, exStyle.incomeFill, 'Service!$A$1:$A$' + incAcc.length);
 			fillExcelLines('Expense', expense, exStyle.expenseFill, 'Service!$B$1:$B$' + expAcc.length);
-               
+
 
 			worksheet.getRow(1).eachCell({includeEmpty: true}, function (cell, cellNumber) { // header
 				cell.font = exStyle.headerFont;
@@ -2658,7 +2658,7 @@
 	 */
 	helpApplyExcelFile: function (cmp, workbook) {
 		try {
-            let tableHeaders = cmp.get("v.headers");
+			let tableHeaders = cmp.get("v.headers");
 			let incomeSubLines = [];
 			let expenseSubLines = [];
 			let reportMessages = [];
@@ -2674,24 +2674,24 @@
 			let d8SO = cmp.get('v.d8SO');
 			let d9SO = cmp.get('v.d9SO');
 			let d10SO = cmp.get('v.d10SO');
-           
-            let analyticOrder ={}
-            if (cmp.get('v.d6name') != null) analyticOrder['dim6'] = 6;
-            if (cmp.get('v.d7name') != null) analyticOrder['dim7'] = 7;
-            if (cmp.get('v.d8name') != null) analyticOrder['dim8'] = 8;
-            if (cmp.get('v.d9name') != null) analyticOrder['dim9'] = 9;
-            if (cmp.get('v.d10name') != null) analyticOrder['dim10'] = 10;
+
+			let analyticOrder ={}
+			if (cmp.get('v.d6name') != null) analyticOrder['dim6'] = 6;
+			if (cmp.get('v.d7name') != null) analyticOrder['dim7'] = 7;
+			if (cmp.get('v.d8name') != null) analyticOrder['dim8'] = 8;
+			if (cmp.get('v.d9name') != null) analyticOrder['dim9'] = 9;
+			if (cmp.get('v.d10name') != null) analyticOrder['dim10'] = 10;
 
 			let dataSheet = workbook.getWorksheet(1);// take the second tab
-            let curColumn=1;
-            dataSheet.getColumn(curColumn++).key = 'type';
-            dataSheet.getColumn(curColumn++).key = 'acc';
-            ['dim6','dim7','dim8','dim9','dim10'].forEach (dim => {
-                if (analyticOrder.hasOwnProperty(dim)) {dataSheet.getColumn(curColumn++).key = 'd'+analyticOrder[dim];}
-            });   
-            tableHeaders.forEach(h => { dataSheet.getColumn(curColumn++).key=h;});
-            dataSheet.getColumn(curColumn++).key = 'desc';
-                                       
+			let curColumn=1;
+			dataSheet.getColumn(curColumn++).key = 'type';
+			dataSheet.getColumn(curColumn++).key = 'acc';
+			['dim6','dim7','dim8','dim9','dim10'].forEach (dim => {
+				if (analyticOrder.hasOwnProperty(dim)) {dataSheet.getColumn(curColumn++).key = 'd'+analyticOrder[dim];}
+			});
+			tableHeaders.forEach(h => { dataSheet.getColumn(curColumn++).key=h;});
+			dataSheet.getColumn(curColumn++).key = 'desc';
+
 			reportMessages.push('Total number of rows: ' + (dataSheet.rowCount - 1));
 
 			let j = 0;
@@ -2709,57 +2709,57 @@
 				for (j = d10SO.length; j--;) dimensions[d10SO[j].title.replace(/,/g, '⸴') + '10'] = d10SO[j].value;
 			} catch (e) {
 				alert('replace 1: ' + e)
-                return;                       
+				return;
 			}
 
 
 			let dims, values, type, accName, description, accId, val, key, rowValues, total, k, v ;
-                        
+
 			dataSheet.eachRow(function (row, rowNumber) { // iteration over the lines
-                let subLine={};
+				let subLine={};
 				if (rowNumber === 1) return true; // file header
-                type = row.getCell('type').value;
+				type = row.getCell('type').value;
 				if (_isInvalid(type) || typeof type !=='string' || !type ) {
-                    errorMessages.push('Line ' + rowNumber + ' was ignored due to formatting. Line type is not specified');
+					errorMessages.push('Line ' + rowNumber + ' was ignored due to formatting. Line type is not specified');
 					errors++;
 					return true;
 				}
-                if ((type != 'Expense') && (type != 'Income')){
-                    errorMessages.push('Line ' + rowNumber + ' was ignored due to wrong type ' + type + '.');
+				if ((type != 'Expense') && (type != 'Income')){
+					errorMessages.push('Line ' + rowNumber + ' was ignored due to wrong type ' + type + '.');
 					errors++;
-					return true; 
-                }
-                subLine["accountST"]=type;
-                
+					return true;
+				}
+				subLine["accountST"]=type;
+
 				description = row.getCell('desc').value;
-                subLine["description"]=description;
-                try {
+				subLine["description"]=description;
+				try {
 					accName = row.getCell('acc').value.replace(/,/g, '⸴');
 				} catch (e) {
 					alert('replace acc: ' + e);
 					_cl(rowNumber);
-                    return true;
+					return true;
 				}
-                
-                accId = accounts[accName];
+
+				accId = accounts[accName];
 				if (_isInvalid(accId)) {
 					errorMessages.push('Row: ' + rowNumber + ' account  "' + accName + '" is invalid');
 					errors++;
 					return true;
 				}
-                subLine["account"]=accId;
-                key = accId;
+				subLine["account"]=accId;
+				key = accId;
 
-                values = [];
-                tableHeaders.forEach(function (h) {
-                    let tmpCell=row.getCell(h);
-                    if (_isInvalid(tmpCell.value)) tmpCell.value = 0;
+				values = [];
+				tableHeaders.forEach(function (h) {
+					let tmpCell=row.getCell(h);
+					if (_isInvalid(tmpCell.value)) tmpCell.value = 0;
 					val = typeof tmpCell.value === 'number' ? Math.round(tmpCell.value) : Math.round(tmpCell.value.result); // cell.value = 27  OR cell.value={"formula":"J3*2","result":24200}
 					if (_isInvalid(val)) val = 0;
-                    values.push(val); // converting to float is below
-                });
-                
-                rowValues = [];
+					values.push(val); // converting to float is below
+				});
+
+				rowValues = [];
 				total = 0;
 				for (k = 0; k < values.length; k++) {
 					v = parseFloat(values[k]);
@@ -2767,46 +2767,46 @@
 					total += parseFloat(v);
 				}
 				rowValues.push({'v': total, t: 'disabled'});
-                subLine["rowValues"]= rowValues;
-                
-                dims = []; // array of dimensions
-                let dimError = false;
-                ['dim6','dim7','dim8','dim9','dim10'].forEach (dim => {
-                    let tmpCell;
-                    if (dimError) return true;
-                    if (analyticOrder.hasOwnProperty(dim)) {
-                    let dimIndex = analyticOrder[dim];
-                    let columnKey = 'd'+dimIndex;
-                    try {
-                     tmpCell=row.getCell(columnKey).value.replace(/,/g, '⸴');
-                    }  catch (e) {
-                       dimError=true  
-					   alert('replace dim: ' + e);
-                      return true;
-				     }            
-                    let dimId = dimensions[tmpCell + dimIndex]; // "dimension title + dimension number" is  the key for Dimension Map. Index needed because dimension titles can repeated in the different dimension types
-                    dims.push(dimId);
-                    if (!_isInvalid(dimId)) { 
-                        subLine[dim]= dimId;  
-                        subLine[dim + "Head"]= dimId;
-                    }
-                    }
-                });
-                if (dimError) return true;
-               
+				subLine["rowValues"]= rowValues;
+
+				dims = []; // array of dimensions
+				let dimError = false;
+				['dim6','dim7','dim8','dim9','dim10'].forEach (dim => {
+					let tmpCell;
+					if (dimError) return true;
+					if (analyticOrder.hasOwnProperty(dim)) {
+						let dimIndex = analyticOrder[dim];
+						let columnKey = 'd'+dimIndex;
+						try {
+							tmpCell=row.getCell(columnKey).value.replace(/,/g, '⸴');
+						}  catch (e) {
+							dimError=true
+							alert('replace dim: ' + e);
+							return true;
+						}
+						let dimId = dimensions[tmpCell + dimIndex]; // "dimension title + dimension number" is  the key for Dimension Map. Index needed because dimension titles can repeated in the different dimension types
+						dims.push(dimId);
+						if (!_isInvalid(dimId)) {
+							subLine[dim]= dimId;
+							subLine[dim + "Head"]= dimId;
+						}
+					}
+				});
+				if (dimError) return true;
+
 				subLine["ie"]= type.toLowerCase() === 'income' ? 'income' : 'expense';
-				subLine["key"]=''; 
-				
+				subLine["key"]='';
+
 				for (k = 0; k < dims.length; k++) {
 					key += dims[k];
 				}
 
 				key = key + description;
-                try {
- 				subLine["key"]= key.replace(/ /g, '').replace(':', '').replace('&', '').trim() + rowNumber + 'row';;				
+				try {
+					subLine["key"]= key.replace(/ /g, '').replace(':', '').replace('&', '').trim() + rowNumber + 'row';;
 				} catch (e) {
 					alert('replace key: ' + e);
-                    return true;
+					return true;
 				}
 
 				if (type.toLowerCase() === 'income') {
@@ -2817,27 +2817,27 @@
 				success++;
 
 			});
-        
-            if (errors > 0) iconType = "action:close";
-        
-            cmp.set("v.incomeSubLinesImport", incomeSubLines);
+
+			if (errors > 0) iconType = "action:close";
+
+			cmp.set("v.incomeSubLinesImport", incomeSubLines);
 			cmp.set("v.expenseSubLinesImport", expenseSubLines);
 
 			incomeSubLines = this.objectsToArray(incomeSubLines);
 			expenseSubLines = this.objectsToArray(expenseSubLines);
 			_CBRequest(
-			cmp,
-			'c.runExcelImportServer',
-			{
-				appId      : cmp.get('v.app.Id'),
-				incomeList : incomeSubLines,
-				expenseList: expenseSubLines
-			},
-			null,
-			null,
-			null,
-			null,
-			false
+				cmp,
+				'c.runExcelImportServer',
+				{
+					appId      : cmp.get('v.app.Id'),
+					incomeList : incomeSubLines,
+					expenseList: expenseSubLines
+				},
+				null,
+				null,
+				null,
+				null,
+				false
 			);
 
 			reportMessages.push('Rows successfully uploaded: ' + success);
@@ -3316,17 +3316,17 @@
 		this.objectsToArray(totals);
 		totals = this.helpConvertRowsToCBTags(cmp, totals, 'total');
 		_CBRequest(
-		cmp,
-		'c.saveAppTotalsServer',
-		{
-			'appId'  : cmp.get('v.app.Id'),
-		    'totals' : totals
-		},
-		null,
-		null,
-		null,
-		'Failed to save Budget Totals',
-		false
+			cmp,
+			'c.saveAppTotalsServer',
+			{
+				'appId'  : cmp.get('v.app.Id'),
+				'totals' : totals
+			},
+			null,
+			null,
+			null,
+			'Failed to save Budget Totals',
+			false
 		);
 	},
 

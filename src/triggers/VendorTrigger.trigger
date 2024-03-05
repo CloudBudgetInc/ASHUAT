@@ -37,6 +37,8 @@ trigger VendorTrigger on Account (before insert, after update, after delete) {
      * Both types of changes are logged to the Vendor record in Salesforce.
      */
     if (trigger.isAfter && trigger.isUpdate) {
+        Concur_Integration__mdt setting = [SELECT Id, Vendor_Integration_Enabled__c FROM Concur_Integration__mdt];
+        System.debug('Vendor integration enabled: ' + setting.Vendor_Integration_Enabled__c);
         List<Concur_Log__c> forInsert = new List<Concur_Log__c>();
         for(Account vendor : trigger.new)
         {
@@ -49,9 +51,13 @@ trigger VendorTrigger on Account (before insert, after update, after delete) {
                            Concur_Log__c someLog = new Concur_Log__c( Vendor_ID__c = vendor.Vendor_ID__c,
                                                                      Type__c = 'Insert', Event_Date_Time__c = System.now() );
                            someLog.Organization__c = vendor.Id;
-                           forInsert.add(someLog);
-                           // OFF IN SANDBOX.
-                           ConcurIntegrationHandler.handleVendorChange(vendor.Id, 'INSERT');
+                           if(setting.Vendor_Integration_Enabled__c == true) {
+	                           forInsert.add(someLog);
+                               ConcurIntegrationHandler.handleVendorChange(vendor.Id, 'INSERT');
+                           }
+                           else {
+                               System.debug('Vendor push to Concur disabled.');
+                           }
                        }
                    }
                 if( vendor.Vendor_ID__c != null && vendor.Vendor_Status__c == 'Approved' )
@@ -68,9 +74,13 @@ trigger VendorTrigger on Account (before insert, after update, after delete) {
                            Concur_Log__c someLog = new Concur_Log__c(Type__c = 'Update', 
                                                                      Vendor_ID__c = vendor.Vendor_ID__c, Event_Date_Time__c = System.now());
                            someLog.Organization__c = vendor.Id;
-                           forInsert.add(someLog);  
-                           // OFF IN SANDBOX.
-                           ConcurIntegrationHandler.handleVendorChange(vendor.Id, 'UPDATE');
+                           if(setting.Vendor_Integration_Enabled__c == true) {
+	                           forInsert.add(someLog);
+                               ConcurIntegrationHandler.handleVendorChange(vendor.Id, 'UPDATE');
+                           }
+                           else {
+                               System.debug('Vendor push to Concur disabled.');
+                           }                           
                        }
                 }
             }

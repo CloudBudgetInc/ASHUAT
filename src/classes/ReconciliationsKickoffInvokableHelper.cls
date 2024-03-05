@@ -8,5 +8,5 @@ public class ReconciliationsKickoffInvokableHelper {
         // company, then period
     	Id batchJobId = Database.executeBatch(
             new ReconciliationsKickoffBatch(nestedParams.get(0), nestedParams.get(1)),1000);
-    }   
+    }
 }

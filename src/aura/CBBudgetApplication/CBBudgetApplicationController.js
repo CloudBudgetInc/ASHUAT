@@ -412,21 +412,21 @@
 			}
 		}
 		_CBRequest(
-		cmp,
-		'c.changeLockStatusBudgetServer',
-		{
-			'app' : cmp.get('v.app')
-		},
-		'v.app',
-		callback,
-		null,
-		'Failed to lock Budget',
-		false
+			cmp,
+			'c.changeLockStatusBudgetServer',
+			{
+				'app' : cmp.get('v.app')
+			},
+			'v.app',
+			callback,
+			null,
+			'Failed to lock Budget',
+			false
 		);
 	},
 
 	rejectBudget: function(cmp, evt, h) {
-	    h.helpInitDataFlow(cmp, true);
+		h.helpInitDataFlow(cmp, true);
 		$A.util.addClass(cmp.find("approveModalDiv"), "slds-hide");
 		$A.util.addClass(cmp.find("modalBackGround"), "slds-hide");
 	},
@@ -507,10 +507,10 @@
 	},
 
 	applyHistoryFilter: function(cmp, evt, h) {
-	    h.helpGetHistory(cmp);
+		h.helpGetHistory(cmp);
 	},
 
 	lockSublineDeletion: function(cmp, evt, h) {
-	    cmp.set('v.disableDeleteSublines', true);
+		cmp.set('v.disableDeleteSublines', true);
 	}
 });
