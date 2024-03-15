@@ -18,6 +18,32 @@ let separatedReportingBalances = {};// reporting balances separated by Dimension
 const FIRST_SHEET_NAME = 'Summary';
 let FILE_NAME = "Exec. Committee Report";
 
+/**
+ * REQUIREMENT
+>>>Change Clinical News Magazine to ASH Clinical News
+>>>Change LLC to ASH Headquarters
+>>>Change Publications to Blood Journal
+>>>Change Wallace Coulter to Wallace Coulter Grant
+>>>Change ASH Found Department to ASH Foundation Department Expenses
+>>>Change ASH Foundation to ASH Foundation Distributions
+>>>Change Award & Diversity to Awards & Diversity Department
+>>>Change MRHP Award to Minority Resident Hematology Award
+>>>Change Default under Awards to Miscellaneous Awards
+>>>Change Committee to Committees
+ */
+const TITLE_MAPPING = {
+	'Clinical News Magazine': 'ASH Clinical News',
+	'LLC': 'ASH Headquarters',
+	'Publications': 'Blood Journal',
+	'Wallace Coulter': 'Blood Journal',
+	'ASH Found Department': 'ASH Foundation Department Expenses',
+	'ASH Foundation': 'ASH Foundation Distributions',
+	'Award & Diversity': 'Awards & Diversity Department',
+	'MRHP Award': 'Minority Resident Hematology Award',
+	'Default': 'Miscellaneous Awards',
+	'Committee': 'Committees',
+};
+
 const SHEET_MAPPING = {
 	'Annual Meeting (353)': 'Annual Meeting',
 	'Publications (366)': 'Blood',
@@ -66,10 +92,18 @@ const manageDataAndGenerateTreasuryFile = () => {
 const createDataSetsSeparatedBySheets = () => {
 	try {
 		const firstSheetName = FIRST_SHEET_NAME;
-		const logArray = [];
+		const logArray = []; // log on the page
+		const listOfTitleKeys = Object.keys(TITLE_MAPPING);
 		_this.reportingBalancesRaw.forEach(row => {
-			if (row.c2g__Type__c === 'Actual') {
-				logArray.push({d2: row.c2g__Dimension2__r?.Name, d3: row.c2g__Dimension3__r?.Name});
+			if (row.c2g__Type__c === 'Actual') logArray.push({
+				d2: row.c2g__Dimension2__r?.Name,
+				d3: row.c2g__Dimension3__r?.Name
+			});
+			if (row.c2g__Dimension2__r?.Name) {
+				const dim2Name = row.c2g__Dimension2__r.Name;
+				const mapKey = listOfTitleKeys.find(key => dim2Name.includes(key));
+				if (mapKey) row.c2g__Dimension2__r.Name = TITLE_MAPPING[mapKey]; // requirement to replace the title from 3/15/2024
+				if (row.c2g__Dimension3__r?.Name && row.c2g__Dimension3__r.Name.includes('Default')) row.c2g__Dimension3__r.Name = 'Miscellaneous Awards';
 			}
 		});
 		//console.log('logArray:' + JSON.stringify(logArray));
@@ -482,6 +516,7 @@ const generateExcelFile = async () => {
 
 		//Object.keys(this.separatedReportingBalances).forEach(name => console.log('SHEET NAME : ' + name));
 		Object.keys(separatedReportingBalances).forEach(sheetName => {
+			if (sheetName !== 'Summary') return null; // requirement to leave just the Summary sheet form 15/03/2024
 			const lines = separatedReportingBalances[sheetName];
 			let sheetType = SHEET_TYPE[sheetName];
 			let excelSheet = workbook.addWorksheet(sheetName, {views: [{state: "frozen", ySplit: 1, xSplit: 0}]});
