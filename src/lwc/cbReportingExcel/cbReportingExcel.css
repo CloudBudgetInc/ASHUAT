@@ -1,0 +1,11 @@
+.logoCard {
+    alignment: center;
+    height: 55vh
+}
+
+.shakeDiv {
+    position: absolute;
+    top: 40%;
+    left: 45%;
+    transform: translate(-50%, -50%);
+}

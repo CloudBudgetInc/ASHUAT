@@ -1,6 +1,6 @@
 <template>
 
-	<lightning-card title="CB Custom Excel Report v74">
+	<lightning-card title="CB Custom Excel Report v75">
 		<lightning-layout slot="actions">
 			<lightning-layout-item>
 				<lightning-combobox
@@ -43,14 +43,43 @@
 		</lightning-layout>
 
 
-		<p class="slds-p-horizontal_small">
+		<p class="slds-p-horizontal_small" style="position: absolute">
 			<template for:each={logs} for:item="log">
 				<div key={log}>
 					{log}
 				</div>
 			</template>
 		</p>
+
+		<div class="logoCard">
+			<div class="shakeDiv">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="200" height="200">
+					<rect x="0" y="0" width="256" height="256" rx="32" fill="#217346"/>
+					<line x1="128" y1="76" x2="166.4" y2="76" fill="none" stroke="#fff" stroke-linecap="round"
+						  stroke-linejoin="round"
+						  stroke-width="19.2"/>
+					<line x1="128" y1="128" x2="166.4" y2="128" fill="none" stroke="#fff" stroke-linecap="round"
+						  stroke-linejoin="round" stroke-width="19.2"/>
+					<path d="M64,60V36a6.4,6.4,0,0,1,6.4-6.4H185.6a6.4,6.4,0,0,1,6.4,6.4V196.8a6.4,6.4,0,0,1-6.4,6.4H70.4a6.4,6.4,0,0,1-6.4-6.4V163.2"
+						  fill="none"
+						  stroke="#fff" stroke-linecap="round" stroke-linejoin="round" stroke-width="19.2"/>
+					<line x1="108.8" y1="163.2" x2="108.8" y2="204.8" fill="none" stroke="#fff" stroke-linecap="round"
+						  stroke-linejoin="round" stroke-width="19.2"/>
+					<line x1="108.8" y1="25.6" x2="108.8" y2="60" fill="none" stroke="#fff" stroke-linecap="round"
+						  stroke-linejoin="round"
+						  stroke-width="19.2"/>
+					<rect x="25.6" y="60" width="102.4" height="96" rx="6.4" fill="none" stroke="#fff"
+						  stroke-linecap="round"
+						  stroke-linejoin="round" stroke-width="19.2"/>
+					<line x1="62.4" y1="81.6" x2="91.2" y2="121.6" fill="none" stroke="#fff" stroke-linecap="round"
+						  stroke-linejoin="round" stroke-width="19.2"/>
+					<line x1="91.2" y1="81.6" x2="62.4" y2="121.6" fill="none" stroke="#fff" stroke-linecap="round"
+						  stroke-linejoin="round" stroke-width="19.2"/>
+				</svg>
+			</div>
+		</div>
 	</lightning-card>
+
 
 	<!-- SPINNER -->
 	<c-cb-spinner show={showSpinner}></c-cb-spinner>

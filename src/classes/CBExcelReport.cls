@@ -23,7 +23,6 @@ public with sharing class CBExcelReport {
 		Set<String> companySO = new Set<String>();
 		for (c2g__codaCompany__c cmp : [SELECT Name FROM c2g__codaCompany__c ORDER BY Name]) companySO.add(cmp.Name);
 		r.put('companySO', new List<String>(companySO));
-
 		return r;
 	}
 
@@ -38,7 +37,7 @@ public with sharing class CBExcelReport {
 	 * @return reporting balance data for Excel report
 	 */
 	@AuraEnabled
-	public static List<c2g__ReportingBalance__c> getReportDataServer(Integer selectedBY, String selectedCompany) {
+	public static List<c2g__ReportingBalance__c> getReportDataServer(Integer selectedBY, String selectedCompany) { 
 		Integer previousYear = selectedBY - 1;
 		Integer nextYear = selectedBY + 1;
 		String sel = 'SELECT c2g__Type__c,Year__c,c2g__Dimension1__r.Name,c2g__Dimension2__r.Name,c2g__Dimension3__r.Name,c2g__Period__r.Closed__c,' +

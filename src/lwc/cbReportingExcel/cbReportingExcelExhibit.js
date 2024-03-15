@@ -270,7 +270,8 @@ const generateExcelFile = async () => {
 			addReportLines(dim1Sheet, lines);
 		});
 
-		addSpecialTableToMainSheet(workbook.getWorksheet(FIRST_SHEET_NAME), separatedReportingBalances[FIRST_SHEET_NAME]);
+		const anotherCompanyId = _this.companySO.find(comSO => comSO.value !== _this.selectedCompany).value;
+		await addSpecialTableToMainSheet(workbook.getWorksheet(FIRST_SHEET_NAME), separatedReportingBalances[FIRST_SHEET_NAME], anotherCompanyId, _this.selectedBY);
 
 		let data = await workbook.xlsx.writeBuffer();
 		const blob = new Blob([data], {type: "application/octet-stream"});
@@ -326,12 +327,27 @@ const addHeaderAndSetColumnWidth = (sheet) => {
 
 const FIELD_ORDER = ['programProject', 'incomeStatementGroup', 'generalLedgerName', 'accountSubAccount', 'label', 'actual', 'approvedBudget', 'processedBudget', 'processedVsApproved', 'processedVsApprovedPercent'];
 
+/**
+ * Method gets prepared report lines and put them to an Excel sheet
+ * @param sheet
+ * @param lines
+ */
 const addReportLines = (sheet, lines) => {
 	try {
 		let rowPosition = 2;
 		let rowFill, rowFont, previousLineWasProgramSubtotal, previousLineWasSimple;
+		const numberFields = ['actual', 'approvedBudget', 'processedBudget', 'processedVsApproved'];
+		lines = lines.filter(line => numberFields.some(fn => line[fn] !== 0)); // remove completely empty lines
+		let insertSpecialLine = true;
 		lines.forEach(line => {
 			if (previousLineWasProgramSubtotal) rowPosition++;
+			if (insertSpecialLine && line.programProject?.includes('460')) {
+				insertSpecialLine = false;
+				const cell = sheet.getRow(rowPosition++).getCell(1);
+				cell.value = 'Reserves';
+				cell.font = {bold: true, size: 14};
+				return null;
+			}
 			const excelRow = sheet.getRow(rowPosition++);
 			rowFill = getReportLineFill(line.type);
 			rowFont = getReportLineFont(line.type);
@@ -339,7 +355,7 @@ const addReportLines = (sheet, lines) => {
 			FIELD_ORDER.forEach((f, i) => {
 				const cell = excelRow.getCell(i + 1);
 				_setCell(cell, line[f], rowFill, rowFont, null, null, SIMPLE_BORDERS);
-				if (['actual', 'approvedBudget', 'processedBudget', 'processedVsApproved'].includes(f)) cell.numFmt = CURRENCY_FMT;
+				if (numberFields.includes(f)) cell.numFmt = CURRENCY_FMT;
 				if (f === 'processedVsApprovedPercent') cell.numFmt = PERCENT_FMT;
 			});
 			previousLineWasProgramSubtotal = line.type === 'program';
