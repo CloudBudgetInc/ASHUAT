@@ -153,7 +153,7 @@ const addSubTotalLines = (reportLines) => {
 			try {
 				if (i === 0) { // first line
 
-					incomeStatementGroup = rl.incomeStatementGroup + rl.programProject;
+					incomeStatementGroup = rl.incomeStatementGroup + rl.programProject; // key
 					incomeStatementSubLine = getNewIncomeStatementSubLine(rl);
 
 					programProject = rl.programProject;

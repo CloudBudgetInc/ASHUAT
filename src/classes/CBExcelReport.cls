@@ -26,6 +26,8 @@ public with sharing class CBExcelReport {
 		return r;
 	}
 
+	public static String USED_INCOME_STATEMENT_GROUPS = '(\'Income\', \'Program Expense\', \'Salary and Overhead\', \'Other Expense\')';
+
 	/**
 	 * past request
 	 * String actualPlanFilter = ' AND ( (c2g__Type__c = \'Actual\' AND c2g__YearNumber__c = ' + previousYear + ' ) OR ' +
@@ -37,13 +39,13 @@ public with sharing class CBExcelReport {
 	 * @return reporting balance data for Excel report
 	 */
 	@AuraEnabled
-	public static List<c2g__ReportingBalance__c> getReportDataServer(Integer selectedBY, String selectedCompany) { 
+	public static List<c2g__ReportingBalance__c> getReportDataServer(Integer selectedBY, String selectedCompany) {
 		Integer previousYear = selectedBY - 1;
 		Integer nextYear = selectedBY + 1;
-		String sel = 'SELECT c2g__Type__c,Year__c,c2g__Dimension1__r.Name,c2g__Dimension2__r.Name,c2g__Dimension3__r.Name,c2g__Period__r.Closed__c,' +
-				'Income_Statement_Group__c,c2g__GeneralLedgerAccount__r.Name,Account_Subaccount__c,c2g__DualValue__c,c2g__HomeValue__c ';
+		String sel = 'SELECT Id,c2g__Type__c,Year__c,c2g__Dimension1__r.Name,c2g__Dimension2__r.Name,c2g__Dimension3__r.Name,c2g__Period__r.Closed__c,' +
+				'Income_Statement_Group__c,c2g__GeneralLedgerAccount__r.Name,Account_Subaccount__c,c2g__DualValue__c,c2g__HomeValue__c,c2g__OwnerCompany__c ';
 		String frWhere = 'FROM c2g__ReportingBalance__c WHERE ';
-		String isg = ' Income_Statement_Group__c IN (\'Income\', \'Program Expense\', \'Salary and Overhead\') ';
+		String isg = ' Income_Statement_Group__c IN ' + USED_INCOME_STATEMENT_GROUPS;
 		String tb2 = ' AND c2g__GeneralLedgerAccount__r.c2g__TrialBalance2__c IN (\'Expense\', \'Unrestricted Operating Revenue\') ';
 		String companyFilter = ' AND c2g__OwnerCompany__r.Name = \'' + selectedCompany + '\' ';
 		String amountFilter = ' AND c2g__HomeValue__c != 0 AND c2g__HomeValue__c != null AND (NOT c2g__Dimension2__r.Name LIKE \'420%\')   ';

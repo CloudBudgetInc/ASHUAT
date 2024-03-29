@@ -5,11 +5,13 @@ import {
 	PERCENT_FMT,
 	PROGRAM_SUB_LINE_FILL,
 	PROGRAM_SUB_LINE_FONT,
+	RC_FILL,
 	SIMPLE_BORDERS,
 	TOTAL_NET_LINE_FILL
 } from "./cbReportingExcelStyles"
-import {_getCopy, _message, _prompt, _setCell} from 'c/cbUtils';
+import {_getCopy, _message, _parseServerError, _prompt, _setCell} from 'c/cbUtils';
 import {calculateDifference, subtractReportLines, sumReportLines} from "./cbReportingExcelUtils";
+import getReportDataServer from "@salesforce/apex/CBExcelReport.getReportDataServer";
 
 
 let _this;
@@ -17,6 +19,7 @@ const setTreasuryContext = (context) => _this = context;
 let separatedReportingBalances = {};// reporting balances separated by Dimension 2, key is Dim2 Name
 const FIRST_SHEET_NAME = 'Summary';
 let FILE_NAME = "Exec. Committee Report";
+const SPACE = '     ';
 
 /**
  * REQUIREMENT
@@ -75,15 +78,33 @@ const SHEET_TYPE = {
 	'Pubs': 'pairs'
 };
 
-const manageDataAndGenerateTreasuryFile = () => {
+const manageDataAndGenerateTreasuryFile = async () => {
 	try {
-		createDataSetsSeparatedBySheets();
+		const anotherCompanyName = _this.companySO.find(comSO => comSO.value !== _this.selectedCompany).label;
+		if (anotherCompanyName === 'ASH Research Collaborative') {
+			const anotherCompanyId = _this.companySO.find(comSO => comSO.value !== _this.selectedCompany).value;
+			await getRCCompanyData(anotherCompanyId, _this.selectedBY);
+		}
+		createDataSetsSeparatedBySheets(); // separating reporting balances by sheets
 		convertReportingBalancesToReportLines();
 		generateExcelFile();
 	} catch (e) {
 		_message('error', 'Manage Data of Treasury Report Error ' + e);
 	}
 	//console.log('separatedReportingBalances = ' + JSON.stringify(separatedReportingBalances));
+};
+
+const getRCCompanyData = async (anotherCompanyId, selectedBY) => {
+	let anotherCompanyReportLines = [];
+	await getReportDataServer({selectedBY: parseInt(selectedBY), selectedCompany: anotherCompanyId})
+		.then(RBs => {
+			RBs.forEach(rb => rb.company = 'RC');
+			_this.reportingBalancesRaw = [..._this.reportingBalancesRaw, ...RBs];
+		})
+		.catch(e => _parseServerError('Get Extra Data Error ', e));
+
+	anotherCompanyReportLines.forEach(rl => console.log('ANOTHER: ' + JSON.stringify(rl)));
+	return anotherCompanyReportLines;
 };
 
 /**
@@ -94,38 +115,38 @@ const createDataSetsSeparatedBySheets = () => {
 		const firstSheetName = FIRST_SHEET_NAME;
 		const logArray = []; // log on the page
 		const listOfTitleKeys = Object.keys(TITLE_MAPPING);
-		_this.reportingBalancesRaw.forEach(row => {
-			if (row.c2g__Type__c === 'Actual') logArray.push({
+		_this.reportingBalancesRaw.forEach(row => { // raw FF reporting balances
+			if (row.c2g__Type__c === 'Actual') logArray.push({ // log calculations
 				d2: row.c2g__Dimension2__r?.Name,
 				d3: row.c2g__Dimension3__r?.Name
 			});
-			if (row.c2g__Dimension2__r?.Name) {
+			if (row.c2g__Dimension2__r?.Name) { // raname some titles
 				const dim2Name = row.c2g__Dimension2__r.Name;
 				const mapKey = listOfTitleKeys.find(key => dim2Name.includes(key));
 				if (mapKey) row.c2g__Dimension2__r.Name = TITLE_MAPPING[mapKey]; // requirement to replace the title from 3/15/2024
 				if (row.c2g__Dimension3__r?.Name && row.c2g__Dimension3__r.Name.includes('Default')) row.c2g__Dimension3__r.Name = 'Miscellaneous Awards';
 			}
 		});
-		//console.log('logArray:' + JSON.stringify(logArray));
+		// result is object where key is future sheet name, and value is list of reporting balances
 		separatedReportingBalances = _this.reportingBalancesRaw.reduce((result, rb) => {
 			try {
 				const sheetName = SHEET_MAPPING[rb.c2g__Dimension2__r?.Name];
 
-				let mainSheetList = result[firstSheetName];
+				let mainSheetList = result[firstSheetName]; // FF RB to the first summary sheet
 				if (!mainSheetList) {
 					mainSheetList = [];
 					result[firstSheetName] = mainSheetList;
 				}
 				mainSheetList.push(rb);
 
-				if (sheetName) {
+				/*if (sheetName) { // so far no reporting balances except Summary needed
 					let sheetRBList = result[sheetName];
 					if (!sheetRBList) {
 						sheetRBList = [];
 						result[sheetName] = sheetRBList;
 					}
 					sheetRBList.push(rb);
-				}
+				}*/
 
 				return result;
 			} catch (e) {
@@ -138,22 +159,22 @@ const createDataSetsSeparatedBySheets = () => {
 };
 
 const convertReportingBalancesToReportLines = () => {
-	Object.keys(separatedReportingBalances).forEach(sheetName => {
+	Object.keys(separatedReportingBalances).forEach(sheetName => { // so far only on sheet Summary
 		try {
-			let reportingBalances = separatedReportingBalances[sheetName];
+			let reportingBalances = separatedReportingBalances[sheetName]; // list of FF RB
 			let sheetType = SHEET_TYPE[sheetName];
-			let reportLines = getReportLinesFromReportingBalances(reportingBalances, sheetType);
+			let reportLines = getReportLinesFromReportingBalances(reportingBalances, sheetType); // convert FF RB to Report lines
 			if (sheetType === 'summary') {
 				try {
 					reportLines = addSummarySubTotalLines(reportLines);
 				} catch (e) {
-					_message('error', 'Add Summary Sub Total Lines Error : ' + e);
+					_message('error', 'Convert Reporting Balances To Report Lines Error : ' + e);
 				}
-			} else if (sheetType === 'pairs') {
+			} /*else if (sheetType === 'pairs') {
 				reportLines = addPairSubTotalLines(reportLines);
 			} else {
 				reportLines = addSimpleSubTotalLines(reportLines);
-			}
+			}*/
 			separatedReportingBalances[sheetName] = reportLines;
 		} catch (e) {
 			_message('error', 'Convert RB to RL Iteration Error ' + e);
@@ -163,20 +184,25 @@ const convertReportingBalancesToReportLines = () => {
 
 const getReportLinesFromReportingBalances = (RBList, sheetType) => {
 	const reportLinesMap = {}; // key is dim2 Id and account Id
-	RBList.forEach(rb => {
+	RBList.forEach(rb => { // single FF RB
 		try {
+			if (!rb.c2g__Dimension2__c) return null;
 			if ((rb.c2g__Type__c === 'Actual' && rb.Year__c === _this.selectedBY) || rb.c2g__Type__c === 'Projection') return null; // used only for YTD & Projection report
 			let lineKey;
 			if (sheetType === 'summary') {
-				lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
-			} else if (sheetType === 'pairs') {
+				lineKey = rb.c2g__OwnerCompany__c + rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
+			} /*else if (sheetType === 'pairs') {
 				lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
 			} else {
 				lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c + rb.c2g__GeneralLedgerAccount__c;
-			}
+			}*/
 			let reportLine = reportLinesMap[lineKey];
 			if (!reportLine) {
 				reportLine = getNewReportLine(rb, lineKey);
+				if (!reportLine.dim2Name) {
+					console.error('RL = ' + JSON.stringify(reportLine));
+					console.error('RB = ' + JSON.stringify(rb));
+				}
 				reportLinesMap[lineKey] = reportLine;
 			}
 			if (rb.c2g__Type__c === 'Actual') {
@@ -200,19 +226,20 @@ const getReportLinesFromReportingBalances = (RBList, sheetType) => {
 };
 
 /**
- *
  * @param rb source reporting balance
  * @param lineKey key of reporting line
  * @return {lineKey: *, actual: number, lightGreyBoldFont: (string|string), accountSubAccount: *, processedBudget: number, processedVsApprovedPercent: number, generalLedgerName: (string|string), lightGrey: *, processedVsApproved: number, approvedBudget: number, label: string} line for the excel table
  */
 const getNewReportLine = (rb, lineKey) => {
 	return {
+		id: rb.Id,
 		lineKey,
 		lineType: rb.Income_Statement_Group__c,
 		accountSubAccount: rb.Account_Subaccount__c,
 		dim2Name: rb.c2g__Dimension2__r?.Name,
 		dim3Name: rb.c2g__Dimension3__r?.Name,
 		accName: rb.c2g__GeneralLedgerAccount__r?.Name,
+		company: rb.company,
 		label: '',
 		actual: 0,
 		approvedBudget: 0, // selected BY
@@ -223,54 +250,60 @@ const getNewReportLine = (rb, lineKey) => {
 };
 
 const addSummarySubTotalLines = (reportLines) => {
-	const compareFn = (a, b) => {
-		const first = a.lineType + a?.dim2Name + b?.dim3Name;
-		const second = b.lineType + b?.dim2Name + b?.dim3Name;
-		return first < second ? -1 : (first > second ? 1 : 0);
-	};
-	reportLines.sort(compareFn);
-	const reportLinesGroup = {};
-	reportLines.forEach(rl => {
+	const compareFn = (a, b) => { // sorting report lines by type, then by dim2 and by dim3
 		try {
+			const first = a.lineType + a?.dim2Name + b?.dim3Name;
+			const second = b.lineType + b?.dim2Name + b?.dim3Name;
+			return first < second ? -1 : (first > second ? 1 : 0);
+		} catch (e) {
+			_message('error', 'Comparision Error : ' + e)
+		}
+	};
+	reportLines.sort(compareFn); // sort report lines in the current sheet
+	const reportLinesGroup = {};
+	const awardReportLines = {};
+	const RCReportLines = {};
+	reportLines.forEach(rl => { // iteration over report lines
+		try {
+			let key1 = rl.dim2Name + rl.lineType;
 			if (rl.lineType !== 'Income') rl.lineType = 'Expense';
-			const lineIsAward = rl.dim2Name === 'Awards (352)';
-			let key1 = lineIsAward ? rl.dim2Name + rl.dim3Name + rl.lineType : rl.dim2Name + rl.lineType; // key of simple line
-			let key2 = lineIsAward ? rl.dim2Name + rl.lineType : false;// key of sum Awards line
-			rl.key1 = key1;
-			rl.key2 = key2;
+			const lineIsAward = rl.dim2Name === 'Awards (352)'; // special group of report lines with sublines
+			const lineIsRC = !!rl.company;
+			if (lineIsRC) {
+				processRCLines(RCReportLines, rl);
+				return
+			}
 			if (lineIsAward) {
-				rl.isSubline = true;
-				rl.type = 'lightGrey';
+				processAwardLines(awardReportLines, rl);
+				return
 			}
-
-			rl.label = lineIsAward ? '     ' + rl.dim3Name : rl.dim2Name;
-
-			if (key2) {
-				const groupRL = reportLinesGroup[key2];
-				const rlCopy = _getCopy(rl);
-				delete rlCopy.isSubline;
-				delete rlCopy.type;
-				if (!groupRL) {
-					rlCopy.label = 'Awards TOTAL';
-					reportLinesGroup[key2] = rlCopy;
-				} else {
-					sumReportLines(groupRL, rlCopy, null, 'Summary Subtotal Grouping');
-				}
-			}
-
-			const groupRL = reportLinesGroup[key1];
-			if (!groupRL) {
-				reportLinesGroup[key1] = rl;
-			} else {
-				sumReportLines(groupRL, rl, null, 'Summary Regular Line Grouping');
-			}
+			rl.label = rl.dim2Name;
+			reportLinesGroup[key1] = rl;
 		} catch (e) {
 			_message('error', 'Add Summary Sub Total Lines Error : ' + e);
 		}
 	});
-	reportLines = Object.values(reportLinesGroup);
+	const incomeReportLines = sortSortedSimpleLinesAwardsAndRC(reportLinesGroup, awardReportLines, RCReportLines, 'Income');
+	const expenseReportLines = sortSortedSimpleLinesAwardsAndRC(reportLinesGroup, awardReportLines, RCReportLines, 'Expense');
+
+	reportLines = [...incomeReportLines, ...expenseReportLines];
+
+	reportLines.forEach(rl => {
+		if (!rl.dim2Name) {
+			_message('error', 'NO dim2Name in ' + JSON.stringify(rl));
+			console.error('RL ERROR ......: ' + JSON.stringify(rl));
+		} else {
+			//console.log('RL ......' + JSON.stringify(rl));
+		}
+	});
+
+
 	const incomeLines = reportLines.filter(rl => rl.lineType === 'Income');
-	const expenseLines = reportLines.filter(rl => rl.lineType !== 'Income' && !rl.dim2Name.includes('Focus Fellowship Training Program'));
+
+	const expenseLines = reportLines.filter(rl => {
+		if (rl.lineType === 'Expense' && !rl.dim2Name.includes('Focus Fellowship Training Program')) return true;
+	});
+
 	const FFTPLines = reportLines.filter(rl => rl.dim2Name.includes('Focus Fellowship Training Program'));
 	const FFTPL = FFTPLines.length > 0 ? FFTPLines[0] : undefined;
 	if (FFTPL) FFTPL.lineType = 'Reserve Expenses';
@@ -326,6 +359,122 @@ const addSummarySubTotalLines = (reportLines) => {
 	return reportLines;
 };
 
+const sortSortedSimpleLinesAwardsAndRC = (reportLinesGroup, awardReportLines, RCReportLines, type) => {
+	let awardNeeded = true;
+	let RCNeeded = true;
+	return Object.values(reportLinesGroup).filter(rl => rl.lineType === type).reduce((res, rl) => {
+		if (rl.label > 'Awards' && awardNeeded) {
+			res = [...res, ...Object.values(awardReportLines).filter(rl => rl.lineType === type)];
+			awardNeeded = false;
+		}
+		if (rl.label > 'ASH Research Collaborative' && RCNeeded) {
+			let RCLines = Object.values(RCReportLines).filter(rl => rl.lineType === type);
+			RCLines.sort((a, b) => a.index < b.index ? -1 : a.index > b.index ? 1 : 0);
+			res = [...res, ...RCLines];
+			RCNeeded = false;
+		}
+		res.push(rl);
+		return res;
+	}, []);
+};
+/**
+ * Method generates Award section of report
+ */
+const processAwardLines = (awardReportLines, rl) => {
+	try {
+		const rlKey = rl.dim2Name + rl.dim3Name + rl.lineType;
+		const totalAwardKey = 'awardTotal' + rl.lineType;
+		rl.isSubline = true;
+		rl.type = 'lightGrey';
+		rl.label = SPACE + rl.dim3Name;
+		let awardTotalLine = awardReportLines[totalAwardKey];
+		if (!awardTotalLine) {
+			awardTotalLine = {
+				actual: 0,
+				dim2Name: rl.dim2Name,
+				dim3Name: rl.dim3Name,
+				approvedBudget: 0,
+				processedBudget: 0,
+				processedVsApproved: 0,
+				processedVsApprovedPercent: 0,
+				label: 'Awards TOTAL',
+				type: 'lightGreyBoldFont',
+				lineType: rl.lineType
+			};
+			awardReportLines[totalAwardKey] = awardTotalLine;
+		}
+		let awardLine = awardReportLines[rlKey];
+		if (awardLine) {
+			sumReportLines(awardLine, rl, null, 'Summary Award Simple Lines Grouping');
+		} else {
+			awardReportLines[rlKey] = rl;
+		}
+		sumReportLines(awardTotalLine, rl, null, 'Summary Award Grouping'); // calculate total
+	} catch (e) {
+		_message('error', 'Process Award Report Line Error ' + e);
+	}
+};
+
+/**
+ * Method generates RC section of the report
+ */
+const processRCLines = (RCReportLines, rl) => {
+	try {
+		const rlKey = rl.dim2Name + rl.lineType;
+		const totalRCKey = 'RCTotal' + rl.lineType;
+		const otherRCKey = 'RCOther' + rl.lineType;
+		const isSeparateRCLine = rl.dim2Name.includes('325') || rl.dim2Name.includes('395');
+		rl.isSubline = true;
+		rl.type = 'lightYellowBoldFont';
+		rl.label = (isSeparateRCLine ? SPACE : SPACE + SPACE) + rl.dim2Name;
+		rl.index = isSeparateRCLine ? 1 : 3;
+		let RCTotalLine = RCReportLines[totalRCKey];
+		let RCOtherLine = RCReportLines[otherRCKey];
+		if (!RCTotalLine) {
+			RCTotalLine = {
+				actual: 0,
+				dim2Name: rl.dim2Name,
+				dim3Name: rl.dim3Name,
+				approvedBudget: 0,
+				processedBudget: 0,
+				processedVsApproved: 0,
+				processedVsApprovedPercent: 0,
+				label: 'ASH Research Collaborative TOTAL',
+				type: 'lightYellowBoldFont',
+				lineType: rl.lineType,
+				index: 0
+			};
+			RCReportLines[totalRCKey] = RCTotalLine;
+		}
+		if (!RCOtherLine) {
+			RCOtherLine = {
+				actual: 0,
+				dim2Name: rl.dim2Name,
+				dim3Name: rl.dim3Name,
+				approvedBudget: 0,
+				processedBudget: 0,
+				processedVsApproved: 0,
+				processedVsApprovedPercent: 0,
+				label: SPACE + 'Other Programs',
+				type: 'lightYellowBoldFont',
+				lineType: rl.lineType,
+				index: 2
+			};
+			RCReportLines[otherRCKey] = RCOtherLine;
+		}
+		let RCLine = RCReportLines[rlKey];
+		if (RCLine) {
+			sumReportLines(RCLine, rl, null, 'RC Simple Lines Grouping');
+		} else {
+			RCReportLines[rlKey] = rl;
+		}
+		sumReportLines(RCTotalLine, rl, null, 'RC Grouping'); // calculate total
+		if (!isSeparateRCLine) sumReportLines(RCOtherLine, rl, null, 'RC Other Grouping'); // calculate total
+	} catch (e) {
+		_message('error', 'Process Award Report Line Error ' + e);
+	}
+};
+
 /**
  * SIMPLE LINES
  */
@@ -342,11 +491,11 @@ const addSimpleSubTotalLines = (reportLines) => {
 			if (rl.lineType !== 'Income') rl.lineType = 'Expense';
 			let key1 = rl.lineType + rl.accName; // key of simple line
 			rl.label = rl.accName.replace(/^\d+\s*-\s*/, ''); // delete account number and a dash
-			const groupRL = reportLinesGroup[key1];
-			if (!groupRL) {
+			const awardGroupRL = reportLinesGroup[key1];
+			if (!awardGroupRL) {
 				reportLinesGroup[key1] = rl;
 			} else {
-				sumReportLines(groupRL, rl, null, 'Treasury Simple Grouping');
+				sumReportLines(awardGroupRL, rl, null, 'Treasury Simple Grouping');
 			}
 		} catch (e) {
 			_message('error', 'Add Simple Sub Total Lines Error : ' + e);
@@ -417,11 +566,11 @@ const addPairSubTotalLines = (reportLines) => {
 			if (rl.lineType !== 'Income') rl.lineType = 'Expense';
 			let key1 = rl.lineType + rl.dim3Name; // key of simple line
 			rl.label = getLabel(rl.dim3Name, rl.lineType);
-			const groupRL = reportLinesGroup[key1];
-			if (!groupRL) {
+			const awardGroupRL = reportLinesGroup[key1];
+			if (!awardGroupRL) {
 				reportLinesGroup[key1] = rl;
 			} else {
-				sumReportLines(groupRL, rl, null, 'Treasury Pairs Grouping');
+				sumReportLines(awardGroupRL, rl, null, 'Treasury Pairs Grouping');
 			}
 		} catch (e) {
 			_message('error', 'Add Simple Sub Total Lines Error : ' + e);
@@ -520,6 +669,7 @@ const generateExcelFile = async () => {
 			const lines = separatedReportingBalances[sheetName];
 			let sheetType = SHEET_TYPE[sheetName];
 			let excelSheet = workbook.addWorksheet(sheetName, {views: [{state: "frozen", ySplit: 1, xSplit: 0}]});
+			excelSheet.addOutlineLevel(10, 15);
 			addSummaryHeaderAndSetColumnWidth(excelSheet);
 			addSummaryReportLines(excelSheet, lines);
 			if (sheetType === 'pairs') excelSheet.getColumn(1).hidden = true;
@@ -603,6 +753,8 @@ const getReportLineFill = (type) => {
 			return HEADER_FILL;
 		case 'lightGreyBoldFont':
 			return HEADER_FILL;
+		case 'lightYellowBoldFont':
+			return RC_FILL;
 		case 'program':
 			return PROGRAM_SUB_LINE_FILL;
 		case 'totalNet':

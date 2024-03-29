@@ -4,6 +4,12 @@ const HEADER_FILL = {
 	fgColor: {argb: 'EFEFEF'}
 };
 
+const RC_FILL = {
+	type: "pattern",
+	pattern: "solid",
+	fgColor: {argb: 'FDEDD9'}
+};
+
 const PROGRAM_PROJECT_SUB_LINE_FILL = {
 	type: "pattern",
 	pattern: "solid",
@@ -46,6 +52,7 @@ const PERCENT_FMT = '#,#0.00"%"';
 
 export {
 	HEADER_FILL,
+	RC_FILL,
 	HEADER_FONT,
 	PROGRAM_PROJECT_SUB_LINE_FILL,
 	PROGRAM_SUB_LINE_FILL,
