@@ -19,6 +19,7 @@ const setTreasuryContext = (context) => _this = context;
 let separatedReportingBalances = {};// reporting balances separated by Dimension 2, key is Dim2 Name
 const FIRST_SHEET_NAME = 'Summary';
 let FILE_NAME = "Exec. Committee Report";
+const SEPARATE_RC_DIM2 = ['392', '395']; // dim2 that may go to the second level of grouping
 const SPACE = '     ';
 
 /**
@@ -423,7 +424,7 @@ const processRCLines = (RCReportLines, rl) => {
 		const rlKey = rl.dim2Name + rl.lineType;
 		const totalRCKey = 'RCTotal' + rl.lineType;
 		const otherRCKey = 'RCOther' + rl.lineType;
-		const isSeparateRCLine = rl.dim2Name.includes('325') || rl.dim2Name.includes('395');
+		const isSeparateRCLine = SEPARATE_RC_DIM2.some(substr => rl.dim2Name.includes(substr));
 		rl.isSubline = true;
 		rl.type = 'lightYellowBoldFont';
 		rl.label = (isSeparateRCLine ? SPACE : SPACE + SPACE) + rl.dim2Name;
@@ -669,7 +670,6 @@ const generateExcelFile = async () => {
 			const lines = separatedReportingBalances[sheetName];
 			let sheetType = SHEET_TYPE[sheetName];
 			let excelSheet = workbook.addWorksheet(sheetName, {views: [{state: "frozen", ySplit: 1, xSplit: 0}]});
-			excelSheet.addOutlineLevel(10, 15);
 			addSummaryHeaderAndSetColumnWidth(excelSheet);
 			addSummaryReportLines(excelSheet, lines);
 			if (sheetType === 'pairs') excelSheet.getColumn(1).hidden = true;

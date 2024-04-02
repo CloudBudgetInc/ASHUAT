@@ -9,7 +9,7 @@ import {
 	SIMPLE_BORDERS,
 	TOTAL_NET_LINE_FILL
 } from "./cbReportingExcelStyles"
-import {_message, _prompt, _setCell} from 'c/cbUtils';
+import {_getCopy, _message, _prompt, _setCell} from 'c/cbUtils';
 import {calculateDifference, sumReportLines} from "./cbReportingExcelUtils"
 import {addSpecialTableToMainSheet, moveHFFTPtoBottom} from "./cbReportingExcelExhibitSpecialTable";
 
@@ -170,6 +170,11 @@ const addSubTotalLines = (reportLines) => {
 					updatedReportLines.push(rl);
 					return null;
 				}
+				if (rl.incomeStatementGroup === 'Other Expense') { // royalty must be processed separately
+					royaltyRL = rl;
+					sumReportLines(totalNetLine, rl, true);
+					return null;
+				}
 				if (incomeStatementGroup !== rl.incomeStatementGroup + rl.programProject) { //flush incomeStatementSubLine
 					updatedReportLines.push(incomeStatementSubLine);
 					incomeStatementGroup = rl.incomeStatementGroup + rl.programProject;
@@ -177,6 +182,7 @@ const addSubTotalLines = (reportLines) => {
 				}
 
 				if (programProject !== rl.programProject) { //flush programProjectSubLine
+					if (royaltyRL) flushRoyaltyReportLines(updatedReportLines, programProjectSubLine); //flush royalty lines to the end of program section
 					updatedReportLines.push(programProjectSubLine);
 					programProject = rl.programProject;
 					programProjectSubLine = getNewProgramProjectSubLine(rl);
@@ -207,6 +213,19 @@ const addSubTotalLines = (reportLines) => {
 		_message('error', 'Add SubtotalLines Error ' + e);
 	}
 };
+
+/// ROYALTY /////
+let royaltyRL;
+const flushRoyaltyReportLines = (updatedReportLines, programProjectSubLine) => {
+	programProjectSubLine.leaveAnalytics = true;
+	const subLineBeforeRoyalty = _getCopy(programProjectSubLine);
+	subLineBeforeRoyalty.label = 'Project Net Income Before Royalties';
+	sumReportLines(programProjectSubLine, royaltyRL, true);
+	updatedReportLines.push(subLineBeforeRoyalty);
+	updatedReportLines.push(royaltyRL);
+	royaltyRL = null;
+};
+/// ROYALTY /////
 
 const getNewIncomeStatementSubLine = (rl) => {
 	return {
@@ -351,7 +370,7 @@ const addReportLines = (sheet, lines) => {
 			const excelRow = sheet.getRow(rowPosition++);
 			rowFill = getReportLineFill(line.type);
 			rowFont = getReportLineFont(line.type);
-			if (previousLineWasSimple) line.programProject = line.incomeStatementGroup = undefined;
+			if (previousLineWasSimple && !line.leaveAnalytics) line.programProject = line.incomeStatementGroup = undefined;
 			FIELD_ORDER.forEach((f, i) => {
 				const cell = excelRow.getCell(i + 1);
 				_setCell(cell, line[f], rowFill, rowFont, null, null, SIMPLE_BORDERS);
