@@ -121,11 +121,12 @@ const createDataSetsSeparatedBySheets = () => {
 				d2: row.c2g__Dimension2__r?.Name,
 				d3: row.c2g__Dimension3__r?.Name
 			});
-			if (row.c2g__Dimension2__r?.Name) { // raname some titles
+			if (row.c2g__Dimension2__r?.Name) { // rename some titles and delete numbers
 				const dim2Name = row.c2g__Dimension2__r.Name;
 				const mapKey = listOfTitleKeys.find(key => dim2Name.includes(key));
 				if (mapKey) row.c2g__Dimension2__r.Name = TITLE_MAPPING[mapKey]; // requirement to replace the title from 3/15/2024
 				if (row.c2g__Dimension3__r?.Name && row.c2g__Dimension3__r.Name.includes('Default')) row.c2g__Dimension3__r.Name = 'Miscellaneous Awards';
+				row.c2g__Dimension2__r.Name = row.c2g__Dimension2__r.Name.replace(/\(\d+\)/g, '');
 			}
 		});
 		// result is object where key is future sheet name, and value is list of reporting balances
