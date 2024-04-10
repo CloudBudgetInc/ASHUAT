@@ -19,7 +19,7 @@ const setTreasuryContext = (context) => _this = context;
 let separatedReportingBalances = {};// reporting balances separated by Dimension 2, key is Dim2 Name
 const FIRST_SHEET_NAME = 'Summary';
 let FILE_NAME = "Exec. Committee Report";
-const SEPARATE_RC_DIM2 = ['392', '395']; // dim2 that may go to the second level of grouping
+const SEPARATE_RC_DIM2 = ['Data Hub', 'Clinical Trials']; // dim2 that may go to the second level of grouping
 const SPACE = '     ';
 
 /**
@@ -92,7 +92,6 @@ const manageDataAndGenerateTreasuryFile = async () => {
 	} catch (e) {
 		_message('error', 'Manage Data of Treasury Report Error ' + e);
 	}
-	//console.log('separatedReportingBalances = ' + JSON.stringify(separatedReportingBalances));
 };
 
 const getRCCompanyData = async (anotherCompanyId, selectedBY) => {
@@ -103,8 +102,6 @@ const getRCCompanyData = async (anotherCompanyId, selectedBY) => {
 			_this.reportingBalancesRaw = [..._this.reportingBalancesRaw, ...RBs];
 		})
 		.catch(e => _parseServerError('Get Extra Data Error ', e));
-
-	anotherCompanyReportLines.forEach(rl => console.log('ANOTHER: ' + JSON.stringify(rl)));
 	return anotherCompanyReportLines;
 };
 
@@ -122,34 +119,29 @@ const createDataSetsSeparatedBySheets = () => {
 				d3: row.c2g__Dimension3__r?.Name
 			});
 			if (row.c2g__Dimension2__r?.Name) { // rename some titles and delete numbers
-				const dim2Name = row.c2g__Dimension2__r.Name;
-				const mapKey = listOfTitleKeys.find(key => dim2Name.includes(key));
+				if (row.c2g__Dimension2__r.Name.includes('355')) {
+					if (row.c2g__Dimension3__r.Name.includes('210')) {
+						row.c2g__Dimension2__r.Name = 'HOA North America';
+						row.c2g__Dimension2__c = 'HOANorthAmerica';
+					} else {
+						row.c2g__Dimension2__r.Name = 'HOA International';
+						row.c2g__Dimension2__c = 'HOAInternational';
+					}
+				}
+				const mapKey = listOfTitleKeys.find(key => row.c2g__Dimension2__r.Name.includes(key));
 				if (mapKey) row.c2g__Dimension2__r.Name = TITLE_MAPPING[mapKey]; // requirement to replace the title from 3/15/2024
 				if (row.c2g__Dimension3__r?.Name && row.c2g__Dimension3__r.Name.includes('Default')) row.c2g__Dimension3__r.Name = 'Miscellaneous Awards';
-				row.c2g__Dimension2__r.Name = row.c2g__Dimension2__r.Name.replace(/\(\d+\)/g, '');
 			}
 		});
 		// result is object where key is future sheet name, and value is list of reporting balances
 		separatedReportingBalances = _this.reportingBalancesRaw.reduce((result, rb) => {
 			try {
-				const sheetName = SHEET_MAPPING[rb.c2g__Dimension2__r?.Name];
-
 				let mainSheetList = result[firstSheetName]; // FF RB to the first summary sheet
 				if (!mainSheetList) {
 					mainSheetList = [];
 					result[firstSheetName] = mainSheetList;
 				}
 				mainSheetList.push(rb);
-
-				/*if (sheetName) { // so far no reporting balances except Summary needed
-					let sheetRBList = result[sheetName];
-					if (!sheetRBList) {
-						sheetRBList = [];
-						result[sheetName] = sheetRBList;
-					}
-					sheetRBList.push(rb);
-				}*/
-
 				return result;
 			} catch (e) {
 				_message('error', 'Separate Treasury Data by Sheets Iterating Error: ' + e);
@@ -164,19 +156,8 @@ const convertReportingBalancesToReportLines = () => {
 	Object.keys(separatedReportingBalances).forEach(sheetName => { // so far only on sheet Summary
 		try {
 			let reportingBalances = separatedReportingBalances[sheetName]; // list of FF RB
-			let sheetType = SHEET_TYPE[sheetName];
-			let reportLines = getReportLinesFromReportingBalances(reportingBalances, sheetType); // convert FF RB to Report lines
-			if (sheetType === 'summary') {
-				try {
-					reportLines = addSummarySubTotalLines(reportLines);
-				} catch (e) {
-					_message('error', 'Convert Reporting Balances To Report Lines Error : ' + e);
-				}
-			} /*else if (sheetType === 'pairs') {
-				reportLines = addPairSubTotalLines(reportLines);
-			} else {
-				reportLines = addSimpleSubTotalLines(reportLines);
-			}*/
+			let reportLines = getReportLinesFromReportingBalances(reportingBalances); // convert FF RB to Report lines
+			reportLines = addSummarySubTotalLines(reportLines);
 			separatedReportingBalances[sheetName] = reportLines;
 		} catch (e) {
 			_message('error', 'Convert RB to RL Iteration Error ' + e);
@@ -184,27 +165,17 @@ const convertReportingBalancesToReportLines = () => {
 	});
 };
 
-const getReportLinesFromReportingBalances = (RBList, sheetType) => {
+const getReportLinesFromReportingBalances = (RBList) => {
 	const reportLinesMap = {}; // key is dim2 Id and account Id
 	RBList.forEach(rb => { // single FF RB
 		try {
-			if (!rb.c2g__Dimension2__c) return null;
+			if (!rb.c2g__Dimension2__c) return null; // invalid data
 			if ((rb.c2g__Type__c === 'Actual' && rb.Year__c === _this.selectedBY) || rb.c2g__Type__c === 'Projection') return null; // used only for YTD & Projection report
 			let lineKey;
-			if (sheetType === 'summary') {
-				lineKey = rb.c2g__OwnerCompany__c + rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
-			} /*else if (sheetType === 'pairs') {
-				lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
-			} else {
-				lineKey = rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c + rb.c2g__GeneralLedgerAccount__c;
-			}*/
+			lineKey = rb.c2g__OwnerCompany__c + rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
 			let reportLine = reportLinesMap[lineKey];
 			if (!reportLine) {
 				reportLine = getNewReportLine(rb, lineKey);
-				if (!reportLine.dim2Name) {
-					console.error('RL = ' + JSON.stringify(reportLine));
-					console.error('RB = ' + JSON.stringify(rb));
-				}
 				reportLinesMap[lineKey] = reportLine;
 			}
 			if (rb.c2g__Type__c === 'Actual') {
@@ -261,6 +232,7 @@ const addSummarySubTotalLines = (reportLines) => {
 			_message('error', 'Comparision Error : ' + e)
 		}
 	};
+	reportLines.forEach(rl => rl.lineType = rl.lineType === 'Income' ? 'Income' : 'Expense');
 	reportLines.sort(compareFn); // sort report lines in the current sheet
 	const reportLinesGroup = {};
 	const awardReportLines = {};
@@ -268,7 +240,6 @@ const addSummarySubTotalLines = (reportLines) => {
 	reportLines.forEach(rl => { // iteration over report lines
 		try {
 			let key1 = rl.dim2Name + rl.lineType;
-			if (rl.lineType !== 'Income') rl.lineType = 'Expense';
 			const lineIsAward = rl.dim2Name === 'Awards (352)'; // special group of report lines with sublines
 			const lineIsRC = !!rl.company;
 			if (lineIsRC) {
@@ -280,13 +251,15 @@ const addSummarySubTotalLines = (reportLines) => {
 				return
 			}
 			rl.label = rl.dim2Name;
+			let existedRL = reportLinesGroup[key1];
+			if (existedRL) sumReportLines(rl, existedRL, false, 'SUM SIMILAR');
 			reportLinesGroup[key1] = rl;
 		} catch (e) {
 			_message('error', 'Add Summary Sub Total Lines Error : ' + e);
 		}
 	});
-	const incomeReportLines = sortSortedSimpleLinesAwardsAndRC(reportLinesGroup, awardReportLines, RCReportLines, 'Income');
-	const expenseReportLines = sortSortedSimpleLinesAwardsAndRC(reportLinesGroup, awardReportLines, RCReportLines, 'Expense');
+	const incomeReportLines = placeSortedSimpleLinesAwardsAndRC(reportLinesGroup, awardReportLines, RCReportLines, 'Income');
+	const expenseReportLines = placeSortedSimpleLinesAwardsAndRC(reportLinesGroup, awardReportLines, RCReportLines, 'Expense');
 
 	reportLines = [...incomeReportLines, ...expenseReportLines];
 
@@ -361,10 +334,11 @@ const addSummarySubTotalLines = (reportLines) => {
 	return reportLines;
 };
 
-const sortSortedSimpleLinesAwardsAndRC = (reportLinesGroup, awardReportLines, RCReportLines, type) => {
+const placeSortedSimpleLinesAwardsAndRC = (reportLinesGroup, awardReportLines, RCReportLines, type) => {
 	let awardNeeded = true;
 	let RCNeeded = true;
-	return Object.values(reportLinesGroup).filter(rl => rl.lineType === type).reduce((res, rl) => {
+	const filteredReportLines = Object.values(reportLinesGroup).filter(rl => rl.lineType === type);
+	return filteredReportLines.reduce((res, rl) => {
 		if (rl.label > 'Awards' && awardNeeded) {
 			res = [...res, ...Object.values(awardReportLines).filter(rl => rl.lineType === type)];
 			awardNeeded = false;
@@ -457,10 +431,11 @@ const processRCLines = (RCReportLines, rl) => {
 				processedBudget: 0,
 				processedVsApproved: 0,
 				processedVsApprovedPercent: 0,
-				label: SPACE + 'Other Programs',
+				label: SPACE + 'Misc Programs',
 				type: 'lightYellowBoldFont',
 				lineType: rl.lineType,
-				index: 2
+				index: 2,
+				isSubline: true
 			};
 			RCReportLines[otherRCKey] = RCOtherLine;
 		}
@@ -503,7 +478,7 @@ const addSimpleSubTotalLines = (reportLines) => {
 			_message('error', 'Add Simple Sub Total Lines Error : ' + e);
 		}
 	});
-	//console.log('reportLinesGroup = ' + JSON.stringify(reportLinesGroup));
+
 	reportLines = Object.values(reportLinesGroup);
 	const incomeLines = reportLines.filter(rl => rl.lineType === 'Income');
 	const expenseLines = reportLines.filter(rl => rl.lineType !== 'Income');
@@ -539,10 +514,6 @@ const addSimpleSubTotalLines = (reportLines) => {
 	// null is empty row
 	reportLines = [...incomeLines, totalIncomeRL, null, ...expenseLines, totalExpenseRL, null, totalIncomeRL, totalExpenseRL, totalNetIncome];
 	reportLines = calculateDifference(reportLines);
-
-	//console.log('incomeLines = ' + JSON.stringify(incomeLines));
-	//console.log('reportLines = ' + JSON.stringify(reportLines));
-	//console.log('FFTPLines = ' + JSON.stringify(FFTPLines));
 	return reportLines;
 };
 
@@ -578,7 +549,6 @@ const addPairSubTotalLines = (reportLines) => {
 			_message('error', 'Add Simple Sub Total Lines Error : ' + e);
 		}
 	});
-	//console.log('reportLinesGroup = ' + JSON.stringify(reportLinesGroup));
 	reportLines = Object.values(reportLinesGroup);
 	const incomeLines = reportLines.filter(rl => rl.lineType === 'Income');
 	const expenseLines = reportLines.filter(rl => rl.lineType !== 'Income');
@@ -617,7 +587,6 @@ const addPairSubTotalLines = (reportLines) => {
 		}
 		pair.push(rl);
 	});
-	console.log('PAIR MAP: ' + JSON.stringify(pairsMap));
 	let simpleLines = [];
 	Object.values(pairsMap).forEach(pair => {
 		const subTotal = {
@@ -644,10 +613,6 @@ const addPairSubTotalLines = (reportLines) => {
 	// null is empty row
 	reportLines = [...simpleLines, totalIncomeRL, totalExpenseRL, totalNetIncome];
 	reportLines = calculateDifference(reportLines);
-
-	//console.log('incomeLines = ' + JSON.stringify(incomeLines));
-	//console.log('reportLines = ' + JSON.stringify(reportLines));
-	//console.log('FFTPLines = ' + JSON.stringify(FFTPLines));
 	return reportLines;
 };
 
@@ -665,7 +630,6 @@ const generateExcelFile = async () => {
 		}
 		let workbook = new ExcelJS.Workbook();
 
-		//Object.keys(this.separatedReportingBalances).forEach(name => console.log('SHEET NAME : ' + name));
 		Object.keys(separatedReportingBalances).forEach(sheetName => {
 			if (sheetName !== 'Summary') return null; // requirement to leave just the Summary sheet form 15/03/2024
 			const lines = separatedReportingBalances[sheetName];
@@ -733,6 +697,7 @@ const addSummaryReportLines = (sheet, lines) => {
 				rowPosition++;
 				return null;
 			}
+			if (line.label) line.label = line.label.replace(/\(\d+\)/g, '');
 			const excelRow = sheet.getRow(rowPosition++);
 			rowFill = getReportLineFill(line.type);
 			rowFont = getReportLineFont(line.type);
