@@ -273,7 +273,7 @@ const generateExcelFile = async () => {
 	try {
 
 		_this.showSpinner = true;
-		let fileName = `${FILE_NAME} (${_this.selectedCompany} ${_this.selectedBY})`;
+		let fileName = `${FILE_NAME} (${_this.selectedCompany} ${+_this.selectedBY + 1})`;
 		fileName = await _prompt("Type the file name", fileName, 'File Name');
 		if (!fileName || fileName.length < 1) {
 			_this.showSpinner = false;

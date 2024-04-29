@@ -60,7 +60,7 @@ export default class cbReportingExcel extends LightningElement {
 				try {
 					const budgetYears = analyticMap.budgetYearSO;
 					this.budgetYearSO = budgetYears.reduce((r, by) => {
-						r.push({label: by, value: by});
+						r.push({label: by, value: (by - 1).toString()});
 						return r;
 					}, []);
 					this.selectedBY = budgetYears[0];
@@ -104,7 +104,6 @@ export default class cbReportingExcel extends LightningElement {
 
 	downloadData = async () => {
 		console.log('RUN');
-		this.HEADER_PARAMS = undefined;
 		this.showSpinner = true;
 		try {
 			await this.getReportingBalances();
