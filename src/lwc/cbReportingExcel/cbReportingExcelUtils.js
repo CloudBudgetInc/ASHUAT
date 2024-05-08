@@ -73,4 +73,51 @@ const roundToTwoDecimals = (num) => {
 
 const round = (n) => Number(n.toFixed(2));
 
-export {sumReportLines, subtractReportLines, calculateDifference, round}
+/**
+ * Report Line wrapper
+ */
+class ReportLine {
+	/**
+	 * Constructor for tho types of parameter
+	 * @param labelOrBR may be RB or label
+	 */
+	constructor(labelOrBR, typeOrKey, lineType, dim2Name, dim3Name, index) {
+		if (typeof labelOrBR === 'string') {
+			this.label = labelOrBR;
+			this.type = typeOrKey;
+			this.lineType = lineType;
+			this.dim2Name = dim2Name;
+			this.dim3Name = dim3Name;
+			this.index = index;
+		} else {
+			this.id = labelOrBR.Id;
+			this.lineKey = typeOrKey;
+			this.lineType = labelOrBR.Income_Statement_Group__c;
+			this.accountSubAccount = labelOrBR.Account_Subaccount__c;
+			this.dim2Name = labelOrBR.c2g__Dimension2__r?.Name;
+			this.dim3Name = labelOrBR.c2g__Dimension3__r?.Name;
+			this.accName = labelOrBR.c2g__GeneralLedgerAccount__r?.Name;
+			this.company = labelOrBR.company;
+			this.label = '';
+		}
+	}
+
+	actual = 0;
+	approvedBudget = 0;
+	processedBudget = 0;
+	processedVsApproved = 0;
+	processedVsApprovedPercent = 0;
+	accountSubAccount;
+	company;
+	id;
+	lineKey;
+	label;
+	type;
+	lineType;
+	index;
+	dim2Name;
+	dim3Name;
+	isSubline = false;
+}
+
+export {sumReportLines, subtractReportLines, calculateDifference, round, ReportLine}

@@ -10,7 +10,7 @@ import {
 	TOTAL_NET_LINE_FILL
 } from "./cbReportingExcelStyles"
 import {_getCopy, _message, _parseServerError, _prompt, _setCell} from 'c/cbUtils';
-import {calculateDifference, subtractReportLines, sumReportLines} from "./cbReportingExcelUtils";
+import {calculateDifference, ReportLine, subtractReportLines, sumReportLines} from "./cbReportingExcelUtils";
 import getReportDataServer from "@salesforce/apex/CBExcelReport.getReportDataServer";
 
 
@@ -95,6 +95,11 @@ const manageDataAndGenerateTreasuryFile = async () => {
 	}
 };
 
+/**
+ * @param anotherCompanyId
+ * @param selectedBY
+ * @return method gets RBs for RC company and merge them with the main company rbs
+ */
 const getRCCompanyData = async (anotherCompanyId, selectedBY) => {
 	let anotherCompanyReportLines = [];
 	await getReportDataServer({selectedBY: parseInt(selectedBY), selectedCompany: anotherCompanyId})
@@ -108,6 +113,7 @@ const getRCCompanyData = async (anotherCompanyId, selectedBY) => {
 
 /**
  * Method separates reporting balances by Dimension 2 Name and put extra lines to default list
+ * Method makes some updates with raw reporting balances required by the customer
  */
 const createDataSetsSeparatedBySheets = () => {
 	try {
@@ -158,6 +164,9 @@ const createDataSetsSeparatedBySheets = () => {
 	}
 };
 
+/**
+ * The entry point method to convert reporting balances to report lines and generates total lines
+ */
 const convertReportingBalancesToReportLines = () => {
 	Object.keys(separatedReportingBalances).forEach(sheetName => { // so far only on sheet Summary
 		try {
@@ -181,12 +190,11 @@ const getReportLinesFromReportingBalances = (RBList) => {
 			if (rb.company && SEPARATE_RC_ACC_SUBACC.some(substr => rb.Account_Subaccount__c.includes(substr))) {
 				rb.c2g__Dimension2__c += ' '; // to separate data in future RC table
 				rb.c2g__Dimension2__r.Name += ' ';
-				console.log('RB ' + rb.company);
 			}
 			lineKey = rb.c2g__OwnerCompany__c + rb.c2g__Dimension2__c + rb.c2g__Dimension3__c + rb.Income_Statement_Group__c;
 			let reportLine = reportLinesMap[lineKey];
 			if (!reportLine) {
-				reportLine = getNewReportLine(rb, lineKey);
+				reportLine = new ReportLine(rb, lineKey);
 				reportLinesMap[lineKey] = reportLine;
 			}
 			if (rb.c2g__Type__c === 'Actual') {
@@ -207,30 +215,6 @@ const getReportLinesFromReportingBalances = (RBList) => {
 		}
 	});
 	return Object.values(reportLinesMap);
-};
-
-/**
- * @param rb source reporting balance
- * @param lineKey key of reporting line
- * @return {lineKey: *, actual: number, lightGreyBoldFont: (string|string), accountSubAccount: *, processedBudget: number, processedVsApprovedPercent: number, generalLedgerName: (string|string), lightGrey: *, processedVsApproved: number, approvedBudget: number, label: string} line for the excel table
- */
-const getNewReportLine = (rb, lineKey) => {
-	return {
-		id: rb.Id,
-		lineKey,
-		lineType: rb.Income_Statement_Group__c,
-		accountSubAccount: rb.Account_Subaccount__c,
-		dim2Name: rb.c2g__Dimension2__r?.Name,
-		dim3Name: rb.c2g__Dimension3__r?.Name,
-		accName: rb.c2g__GeneralLedgerAccount__r?.Name,
-		company: rb.company,
-		label: '',
-		actual: 0,
-		approvedBudget: 0, // selected BY
-		processedBudget: 0, // next BY
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-	};
 };
 
 const addSummarySubTotalLines = (reportLines) => {
@@ -293,28 +277,12 @@ const addSummarySubTotalLines = (reportLines) => {
 	const FFTPLines = reportLines.filter(rl => rl.dim2Name.includes('Focus Fellowship Training Program'));
 	const FFTPL = FFTPLines.length > 0 ? FFTPLines[0] : undefined;
 	if (FFTPL) FFTPL.lineType = 'Reserve Expenses';
-	const totalIncomeRL = {
-		actual: 0,
-		approvedBudget: 0,
-		processedBudget: 0,
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-		label: 'Total Income',
-		type: 'lightGreyBoldFont'
-	};
+	const totalIncomeRL = new ReportLine('Total Income', 'lightGreyBoldFont');
 	incomeLines.forEach(rl => {
 		if (!rl.isSubline) sumReportLines(totalIncomeRL, rl, null, 'Treasury Summary Income');
 	});
 
-	const totalExpenseRL = {
-		actual: 0,
-		approvedBudget: 0,
-		processedBudget: 0,
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-		label: 'Total Expense',
-		type: 'lightGreyBoldFont'
-	};
+	const totalExpenseRL = new ReportLine('Total Expense', 'lightGreyBoldFont');
 	expenseLines.forEach(rl => {
 		if (!rl.isSubline) sumReportLines(totalExpenseRL, rl, null, 'Treasury Summary Expenses');
 	});
@@ -345,6 +313,9 @@ const addSummarySubTotalLines = (reportLines) => {
 	return reportLines;
 };
 
+/**
+ * Special method to organize subsections like award report lines and RC report lines in the list or report lines
+ */
 const placeSortedSimpleLinesAwardsAndRC = (reportLinesGroup, awardReportLines, RCReportLines, type) => {
 	let awardNeeded = true;
 	let RCNeeded = true;
@@ -376,18 +347,7 @@ const processAwardLines = (awardReportLines, rl) => {
 		rl.label = SPACE + rl.dim3Name;
 		let awardTotalLine = awardReportLines[totalAwardKey];
 		if (!awardTotalLine) {
-			awardTotalLine = {
-				actual: 0,
-				dim2Name: rl.dim2Name,
-				dim3Name: rl.dim3Name,
-				approvedBudget: 0,
-				processedBudget: 0,
-				processedVsApproved: 0,
-				processedVsApprovedPercent: 0,
-				label: 'Awards TOTAL',
-				type: 'lightGreyBoldFont',
-				lineType: rl.lineType
-			};
+			awardTotalLine = new ReportLine('Awards TOTAL', 'lightGreyBoldFont', rl.lineType, rl.dim2Name, rl.dim3Name);
 			awardReportLines[totalAwardKey] = awardTotalLine;
 		}
 		let awardLine = awardReportLines[rlKey];
@@ -418,36 +378,12 @@ const processRCLines = (RCReportLines, rl) => {
 		let RCTotalLine = RCReportLines[totalRCKey];
 		let RCOtherLine = RCReportLines[otherRCKey];
 		if (!RCTotalLine) {
-			RCTotalLine = {
-				actual: 0,
-				dim2Name: rl.dim2Name,
-				dim3Name: rl.dim3Name,
-				approvedBudget: 0,
-				processedBudget: 0,
-				processedVsApproved: 0,
-				processedVsApprovedPercent: 0,
-				label: 'ASH Research Collaborative TOTAL',
-				type: 'lightYellowBoldFont',
-				lineType: rl.lineType,
-				index: 0
-			};
+			RCTotalLine = new ReportLine('ASH Research Collaborative TOTAL', 'lightYellowBoldFont', rl.lineType, rl.dim2Name, rl.dim3Name, 0);
 			RCReportLines[totalRCKey] = RCTotalLine;
 		}
 		if (!RCOtherLine) {
-			RCOtherLine = {
-				actual: 0,
-				dim2Name: rl.dim2Name,
-				dim3Name: rl.dim3Name,
-				approvedBudget: 0,
-				processedBudget: 0,
-				processedVsApproved: 0,
-				processedVsApprovedPercent: 0,
-				label: SPACE + 'Misc Programs',
-				type: 'lightYellowBoldFont',
-				lineType: rl.lineType,
-				index: 2,
-				isSubline: true
-			};
+			RCOtherLine = new ReportLine(SPACE + 'Misc Programs', 'lightYellowBoldFont', rl.lineType, rl.dim2Name, rl.dim3Name, 2);
+			RCOtherLine.isSubline = true;
 			RCReportLines[otherRCKey] = RCOtherLine;
 		}
 		let RCLine = RCReportLines[rlKey];
@@ -493,26 +429,10 @@ const addSimpleSubTotalLines = (reportLines) => {
 	reportLines = Object.values(reportLinesGroup);
 	const incomeLines = reportLines.filter(rl => rl.lineType === 'Income');
 	const expenseLines = reportLines.filter(rl => rl.lineType !== 'Income');
-	const totalIncomeRL = {
-		actual: 0,
-		approvedBudget: 0,
-		processedBudget: 0,
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-		label: 'Total Income',
-		type: 'lightGreyBoldFont'
-	};
+	const totalIncomeRL = new ReportLine('Total Income', 'lightGreyBoldFont');
 	incomeLines.forEach(rl => sumReportLines(totalIncomeRL, rl, null, 'Treasury Simple Income'));
 
-	const totalExpenseRL = {
-		actual: 0,
-		approvedBudget: 0,
-		processedBudget: 0,
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-		label: 'Total Expense',
-		type: 'lightGreyBoldFont'
-	};
+	const totalExpenseRL = new ReportLine('Total Expense', 'lightGreyBoldFont');
 	expenseLines.forEach(rl => sumReportLines(totalExpenseRL, rl, null, 'Treasury Simple Expense'));
 	const totalNetIncome = _getCopy(totalIncomeRL);
 	totalNetIncome.label = 'Total Net Income from Operations';
@@ -563,26 +483,10 @@ const addPairSubTotalLines = (reportLines) => {
 	reportLines = Object.values(reportLinesGroup);
 	const incomeLines = reportLines.filter(rl => rl.lineType === 'Income');
 	const expenseLines = reportLines.filter(rl => rl.lineType !== 'Income');
-	const totalIncomeRL = {
-		actual: 0,
-		approvedBudget: 0,
-		processedBudget: 0,
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-		label: 'Total Income',
-		type: 'lightGrey'
-	};
+	const totalIncomeRL = new ReportLine('Total Income', 'lightGrey');
 	incomeLines.forEach(rl => sumReportLines(totalIncomeRL, rl, null, 'Treasury Pairs Income'));
 
-	const totalExpenseRL = {
-		actual: 0,
-		approvedBudget: 0,
-		processedBudget: 0,
-		processedVsApproved: 0,
-		processedVsApprovedPercent: 0,
-		label: 'Total Expense',
-		type: 'lightGrey'
-	};
+	const totalExpenseRL = new ReportLine('Total Expense', 'lightGrey');
 	expenseLines.forEach(rl => sumReportLines(totalExpenseRL, rl, null, 'Treasury Simple Expense'));
 	const totalNetIncome = _getCopy(totalIncomeRL);
 	totalNetIncome.type = 'lightGreyBoldFont';
@@ -600,15 +504,7 @@ const addPairSubTotalLines = (reportLines) => {
 	});
 	let simpleLines = [];
 	Object.values(pairsMap).forEach(pair => {
-		const subTotal = {
-			actual: 0,
-			approvedBudget: 0,
-			processedBudget: 0,
-			processedVsApproved: 0,
-			processedVsApprovedPercent: 0,
-			label: 'Subtotal',
-			type: 'lightGrey'
-		};
+		const subTotal = new ReportLine('Subtotal', 'lightGrey');
 
 		if (pair.length === 2) {
 			sumReportLines(subTotal, pair[0], null, 'Pair Subtotal 2');
