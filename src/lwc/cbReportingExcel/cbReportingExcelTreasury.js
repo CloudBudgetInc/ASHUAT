@@ -130,7 +130,12 @@ const createDataSetsSeparatedBySheets = () => {
 					}
 				}
 				const mapKey = listOfTitleKeys.find(key => row.c2g__Dimension2__r.Name.includes(key));
-				if (mapKey) row.c2g__Dimension2__r.Name = TITLE_MAPPING[mapKey]; // requirement to replace the title from 3/15/2024
+				if (mapKey) row.c2g__Dimension2__r.Name = TITLE_MAPPING[mapKey]; // requirement to replace the titles from 3/15/2024
+				if (row.c2g__Dimension2__r.Name.includes('410')) row.c2g__Dimension2__r.Name = 'Business Development (415)'; // 29 04 2024 merge everything under program Resource Development (410) into Business Development (415)
+				if (row.Income_Statement_Group__c === 'Income') { // 29 04 2024 Please split all revenue in Program 362 as follows, as per the following GL codes:
+					if (row.c2g__GeneralLedgerAccount__r.Name.includes('3530')) row.c2g__Dimension2__r.Name = 'Interest on Operations';
+					if (row.c2g__GeneralLedgerAccount__r.Name.includes('3020') || row.c2g__GeneralLedgerAccount__r.Name.includes('3030')) row.c2g__Dimension2__r.Name = 'Membership Dues';
+				}
 				if (row.c2g__Dimension3__r?.Name && row.c2g__Dimension3__r.Name.includes('Default')) row.c2g__Dimension3__r.Name = 'Miscellaneous Awards';
 			}
 		});
