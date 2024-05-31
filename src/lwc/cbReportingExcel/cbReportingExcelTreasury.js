@@ -20,7 +20,7 @@ let separatedReportingBalances = {};// reporting balances separated by Dimension
 const FIRST_SHEET_NAME = 'Summary';
 let FILE_NAME = "Exec. Committee Report";
 const SEPARATE_RC_DIM2 = ['Data Hub', 'Clinical Trials']; // dim2 that may go to the second level of grouping
-const SEPARATE_RC_ACC_SUBACC = ['325-392', '320-395']; // account-subaccount (project) that may go to the second level of grouping
+const SEPARATE_DIM1_NAMES = ['320', '325']; // Dim1 that may go to the second level of grouping
 const SPACE = '     ';
 
 /**
@@ -187,7 +187,7 @@ const getReportLinesFromReportingBalances = (RBList) => {
 			if (!rb.c2g__Dimension2__c) return null; // invalid data
 			if ((rb.c2g__Type__c === 'Actual' && rb.Year__c === _this.selectedBY) || rb.c2g__Type__c === 'Projection') return null; // used only for YTD & Projection report
 			let lineKey;
-			if (rb.company && SEPARATE_RC_ACC_SUBACC.some(substr => rb.Account_Subaccount__c.includes(substr))) {
+			if (rb.company && SEPARATE_RC_DIM2.some(substr => rb.c2g__Dimension2__r.Name.includes(substr)) && SEPARATE_DIM1_NAMES.some(substr => rb.c2g__Dimension1__r?.Name.includes(substr))) {
 				rb.c2g__Dimension2__c += ' '; // to separate data in future RC table
 				rb.c2g__Dimension2__r.Name += ' ';
 			}
@@ -370,7 +370,8 @@ const processRCLines = (RCReportLines, rl) => {
 		const rlKey = rl.dim2Name + rl.lineType;
 		const totalRCKey = 'RCTotal' + rl.lineType;
 		const otherRCKey = 'RCOther' + rl.lineType;
-		const isSeparateRCLine = SEPARATE_RC_DIM2.some(substr => rl.dim2Name.includes(substr)) && SEPARATE_RC_ACC_SUBACC.some(substr => rl.accountSubAccount.includes(substr));
+		// Separate RC lines are on the top of misc programs
+		const isSeparateRCLine = SEPARATE_RC_DIM2.some(substr => rl.dim2Name.includes(substr)) && SEPARATE_DIM1_NAMES.some(substr => rl.dim1Name.includes(substr));
 		rl.isSubline = true;
 		rl.type = 'lightYellowBoldFont';
 		rl.label = (isSeparateRCLine ? SPACE : SPACE + SPACE) + rl.dim2Name;
@@ -515,7 +516,6 @@ const addPairSubTotalLines = (reportLines) => {
 			simpleLines = [...simpleLines, pair[0], subTotal, null];
 		}
 	});
-
 
 	// null is empty row
 	reportLines = [...simpleLines, totalIncomeRL, totalExpenseRL, totalNetIncome];

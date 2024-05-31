@@ -83,23 +83,32 @@ class ReportLine {
 	 */
 	constructor(labelOrBR, typeOrKey, lineType, dim2Name, dim3Name, index) {
 		if (typeof labelOrBR === 'string') {
-			this.label = labelOrBR;
-			this.type = typeOrKey;
-			this.lineType = lineType;
-			this.dim2Name = dim2Name;
-			this.dim3Name = dim3Name;
-			this.index = index;
+			this.initializeWithString(labelOrBR, typeOrKey, lineType, dim2Name, dim3Name, index);
 		} else {
-			this.id = labelOrBR.Id;
-			this.lineKey = typeOrKey;
-			this.lineType = labelOrBR.Income_Statement_Group__c;
-			this.accountSubAccount = labelOrBR.Account_Subaccount__c;
-			this.dim2Name = labelOrBR.c2g__Dimension2__r?.Name;
-			this.dim3Name = labelOrBR.c2g__Dimension3__r?.Name;
-			this.accName = labelOrBR.c2g__GeneralLedgerAccount__r?.Name;
-			this.company = labelOrBR.company;
-			this.label = '';
+			this.initializeWithObject(labelOrBR, typeOrKey);
 		}
+	}
+
+	initializeWithString(label, type, lineType, dim2Name, dim3Name, index) {
+		this.label = label;
+		this.type = type;
+		this.lineType = lineType;
+		this.dim2Name = dim2Name;
+		this.dim3Name = dim3Name;
+		this.index = index;
+	}
+
+	initializeWithObject(rl, key) {
+		this.id = rl.Id;
+		this.lineKey = key;
+		this.lineType = rl.Income_Statement_Group__c;
+		this.accountSubAccount = rl.Account_Subaccount__c;
+		this.dim1Name = rl.c2g__Dimension1__r?.Name;
+		this.dim2Name = rl.c2g__Dimension2__r?.Name;
+		this.dim3Name = rl.c2g__Dimension3__r?.Name;
+		this.accName = rl.c2g__GeneralLedgerAccount__r?.Name;
+		this.company = rl.company;
+		this.label = '';
 	}
 
 	actual = 0;
@@ -115,6 +124,7 @@ class ReportLine {
 	type;
 	lineType;
 	index;
+	dim1Name;
 	dim2Name;
 	dim3Name;
 	isSubline = false;
